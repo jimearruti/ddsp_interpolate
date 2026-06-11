@@ -4,20 +4,22 @@ data:
   instruments: [
     # strings
     'vn',
-    'va',
-    'vc',
-    'db',
+    #'va',
+    #'vc',
+    #'db',
+    
     # woodwinds
     'fl',
-    'ob',
-    'cl',
-    'bn',
+    #'ob',
+    #'cl',
+    #'bn',
+    
+    #brass
     'sax',
-    # brass
     'tpt', 
-    'hn', 
-    'tbn', 
-    'tba',
+    #'hn', 
+    #'tbn', 
+    #'tba',
 ]
 
 preprocess:
