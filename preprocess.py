@@ -32,6 +32,24 @@ def save_subdataset(signals, pitches, loudness, out_path):
     np.save(out_path / "loudness.npy", loudness)
 
 
+class DatasetMultiInstrument(torch.utils.data.Dataset):
+    def __init__(self, out_dir, instrument, subset="train"):
+        super().__init__()
+        data_path = pathlib.Path(out_dir) / instrument / subset
+        self.signals = np.load(data_path / "signals.npy")
+        self.pitches = np.load(data_path / "pitches.npy")
+        self.loudness = np.load(data_path / "loudness.npy")
+
+    def __len__(self) -> int:
+        return self.signals.shape[0]
+
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        s = torch.from_numpy(self.signals[idx])
+        p = torch.from_numpy(self.pitches[idx])
+        l = torch.from_numpy(self.loudness[idx])
+        return s, p, l
+
+
 def preprocess(
     f, sampling_rate, block_size, signal_length, oneshot, **_):
     '''Preprocess a single audio file.
