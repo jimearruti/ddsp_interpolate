@@ -7,7 +7,7 @@ import soundfile as sf
 import torch
 import wandb
 import yaml
-from ddsp_interpolate.preprocess_base_model import Dataset
+from preprocess_base_model import Dataset
 from dotenv import load_dotenv
 from effortless_config import Config
 from tqdm import tqdm
@@ -175,7 +175,7 @@ def main():
 
     model = DDSP(**config["model"]).to(device)
 
-    dataset = Dataset(config["preprocess"]["out_dir"])
+    dataset = Dataset(os.path.join(config["preprocess"]["out_dir"], 'base_model'))
 
     dataloader = torch.utils.data.DataLoader(
         dataset,

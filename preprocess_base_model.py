@@ -17,7 +17,7 @@ def get_files(data_location, extension, **kwargs):
 
 
 def preprocess(f, sampling_rate, block_size, signal_length, oneshot, **kwargs):
-    x, sr = li.load(f, sampling_rate)
+    x, sr = li.load(f, sr=sampling_rate)
     N = (signal_length - len(x) % signal_length) % signal_length
     x = np.pad(x, (0, N))
 
@@ -79,12 +79,12 @@ def main():
     pitchs = np.concatenate(pitchs, 0).astype(np.float32)
     loudness = np.concatenate(loudness, 0).astype(np.float32)
 
-    out_dir = config["preprocess"]["out_dir"]
-    makedirs(out_dir, exist_ok=True)
+    save_dir = path.join(config["preprocess"]["out_dir"], 'base_model')
+    makedirs(save_dir, exist_ok=True)
 
-    np.save(path.join(out_dir, 'base_model', "signals.npy"), signals)
-    np.save(path.join(out_dir, 'base_model', "pitchs.npy"), pitchs)
-    np.save(path.join(out_dir, 'base_model', "loudness.npy"), loudness)
+    np.save(path.join(save_dir, "signals.npy"), signals)
+    np.save(path.join(save_dir, "pitchs.npy"), pitchs)
+    np.save(path.join(save_dir, "loudness.npy"), loudness)
 
 
 if __name__ == "__main__":
