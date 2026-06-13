@@ -29,6 +29,7 @@ class args(Config):
     DECAY_OVER = 400000
     INSTRUMENT = None
     SPLIT_DATASET = True
+    BASE_MODEL_PATH = None
 
 
 def make_dataloaders(out_dir, instrument, batch_size, split=True):
@@ -202,6 +203,9 @@ def main():
         save_path.mkdir(parents=True, exist_ok=True)
 
         model = DDSP(**config["model"]).to(device)
+
+        if args.BASE_MODEL_PATH is not None:
+            model.load_state_dict(torch.load(args.BASE_MODEL_PATH, map_location=device))
 
         dataloaders = make_dataloaders(
             config["preprocess"]["out_dir"], instrument,
