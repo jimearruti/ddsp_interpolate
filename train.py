@@ -219,16 +219,16 @@ def main():
             config={**config, "instrument": instrument},
         )
 
-        with open(save_path / "config.yaml", "w") as out_config:
-            yaml.safe_dump(config, out_config)
-
         opt = torch.optim.Adam(model.parameters(), lr=args.START_LR)
         schedule = get_scheduler(
             len(train_dataloader), args.START_LR, args.STOP_LR, args.DECAY_OVER
         )
 
         train(model, dataloaders, opt, schedule, config, save_path, device, args.STEPS)
- 
+
+        with open(save_path / "config.yaml", "w") as out_config:
+            yaml.safe_dump(config, out_config)
+            
         run.finish()
 
 if __name__ == "__main__":
