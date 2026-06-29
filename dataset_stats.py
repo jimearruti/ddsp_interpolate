@@ -22,19 +22,21 @@ def main():
     print("Analyzing preprocessed data...")
     
     for instrument in instruments:
-        signal_file = out_dir / instrument / "signals.npy"
-        
-        if not signal_file.exists():
-            print(f"[WARNING] No signals.npy found for {instrument} at {signal_file}")
-            continue
+        for split in ["train", "val", "test"]:
 
-        signals_mmap = np.load(signal_file, mmap_mode="r")
-        total_samples = signals_mmap.size
+            signal_file = out_dir / instrument / split / "signals.npy"
+            
+            if not signal_file.exists():
+                print(f"[WARNING] No signals.npy found for {instrument} at {signal_file}")
+                continue
 
-        total_seconds = total_samples / sampling_rate
-        duration_formatted = str(datetime.timedelta(seconds=int(total_seconds)))
-        
-        duration_summary[instrument] = duration_formatted
+            signals_mmap = np.load(signal_file, mmap_mode="r")
+            total_samples = signals_mmap.size
+
+            total_seconds = total_samples / sampling_rate
+            duration_formatted = str(datetime.timedelta(seconds=int(total_seconds)))
+            
+            duration_summary[instrument][split] = duration_formatted
 
     print("\n" + "="*40)
     print(f"{'Instrument':<20} | {'Total Duration':<15}")

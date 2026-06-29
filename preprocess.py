@@ -1,5 +1,6 @@
 import pathlib
 from os import makedirs, path
+import json
 
 import librosa as li
 import numpy as np
@@ -125,6 +126,16 @@ def main():
             for subset, subset_files in [("train", train_files), ("val", val_files), ("test", test_files)]:
                 signals, pitches, loudness = process_files(subset_files, config)
                 save_subdataset(signals, pitches, loudness, out_path / subset)
+            
+            split_data = {
+                "train": [str(file) for file in train_files],
+                "val": [str(file) for file in val_files],
+                "test": [str(file) for file in test_files],
+            }
+
+            with open(pathlib.Path(out_path / "split_files.json"), "w", encoding="utf-8") as f:
+                json.dump(split_data, f, indent=2)
+        
         else:
             train_files, val_files, test_files = files_instrument, [], []
             signals, pitches, loudness = process_files(train_files, config)
