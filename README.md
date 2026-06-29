@@ -1,83 +1,74 @@
-# Differentiable Digital Signal Processing
+# Timbre interpolation with Differentiable Digital Signal Processing
 
-![ddsp_tilde_screenshot](patchs/screenshot_bitwig.png)
+This code is based on the implementation of the [DDSP model](https://github.com/magenta/ddsp) in PyTorch [made by ACIDS-IRCAM](https://github.com/acids-ircam/ddsp_pytorch).
 
-Implementation of the [DDSP model](https://github.com/magenta/ddsp) using PyTorch. This implementation can be exported to a torchscript model, ready to be used inside a realtime environment (see [this video](https://www.youtube.com/watch?v=_U6Bn-1FDHc)).
+The original code was modified to use the [UMRP Dataset](https://labsites.rochester.edu/air/projects/URMP.html), which consists of several subfolders with different instruments. This structure of folders is assumed for preprocessing and training.
 
-## Pretrained models
+This repository is tailored for offline interpolation between instruments, and realtime considerations were left for future work.
 
-| instrument | realtime | preprocessing | sampling rate |                                  link                                  |
-| :--------: | :------: | :-----------: | :-----------: | :--------------------------------------------------------------------: |
-| saxophone  |   true   |  `sigmund~`   |     48kHz     | [download](https://nubo.ircam.fr/index.php/s/7AenL27BEaxLkKi/download) |
-|   violin   |   true   |  `sigmund~`   |     48kHz     | [download](https://nubo.ircam.fr/index.php/s/f6XB4Kp9onxiNwZ/download) |
-<!-- |   violin   |   true   |    `crepe`    |     48kHz     | [download](https://nubo.ircam.fr/index.php/s/LzTsYr8zdqHYdMy/download) | -->
-<!-- |   violin   |  false   |    `crepe`    |     48kHz     | [download](https://nubo.ircam.fr/index.php/s/LMFo3eAb3C5by23/download) | -->
+## Training from scratch
 
-
-## Usage
-
-Edit the `config.yaml` file to fit your needs (audio location, preprocess folder, sampling rate, model parameters...), then preprocess your data using 
+Edit the `config.yaml` file to fit your needs (instruments to consider, audio location, preprocess folder, sampling rate, model parameters...), then preprocess your data using 
 
 ```bash
 python preprocess.py
 ```
 
-You can then train your model using 
+This will process each instrument separately.
+
+You can then train a model for each instrument by calling 
 
 ```bash
-python train.py --name mytraining --steps 10000000 --batch 16 --lr .001
+python train.py --name mytraining (--steps 10000000 --batch 16 --lr .001 --instrument vn)
 ```
 
-Once trained, export it using
+Once models are trained, they can be exported by using
 
 ```bash
 python export.py --run runs/mytraining/
 ```
 
-It will produce a file named `ddsp_pretrained_mytraining.ts`, that you can use inside a python environment like that
+It will produce a file named `ddsp_pretrained_mytraining.ts`, that can later be used to produce sound.
 
-```python
-import torch
 
-model = torch.jit.load("ddsp_pretrained_mytraining.ts")
 
-pitch = torch.randn(1, 200, 1)
-loudness = torch.randn(1, 200, 1)
+> By default, preprocessing and training were modified to perform a split of the dataset, leaving a holdout test set. Models can be trained with all the dataset by adding `--split_dataset false` to the preprocessing and training calls.
 
-audio = model(pitch, loudness)
+## Finetuning from a base model
+
+### Creating a base model
+> By default, we assume the base model will be trained on all the instruments except violin, trumpet and saxophone (since those will be used for finetuning and testing purposes). If another behaviour is intended, the following mentioned Python scripts should be modified.
+
+To obtain a base model, you need to run
+```bash
+python preprocess_base.py
 ```
-
-## Realtime usage
-
-**Be sure that the `block_size` defined in `config.yaml` is a power of 2 if you want to use the model in realtime!**
-
-If you want to use DDSP in realtime (yeah), we provide a pure data external wrapping everything. Export your trained model using
+Later, run
 
 ```bash
-python export.py --run runs/mytraining/ --realtime true
+python train_base_model.py
 ```
 
-This will disable the reverb and enable the use of the model in realtime. For now the external works on CPU, but you can enable GPU accelerated inference by changing `realtime/ddsp_tilde/ddsp_model.h` `DEVICE` to `torch::kCUDA`. Inside Pd, simply send `load your_model.ts` to the `ddsp~` object. The first inlet must be a pitch signal, the second a loudness signal. It can be directly plugged to the `sigmund~` object for real-time timbre transfer.
+This will create a base model using data from several instruments. Audio quality is not expected to be good, since it will serve as a starting point for finetuning.
 
-You can then apply the exported impulse response using a convolution reverb (such as `partconv~` from the `bsaylor` library).
-
-## Compilation
-
-You will need `cmake`, a C++ compiler, and `libtorch` somewhere on your computer. Then, run
+### Finetuning
+After the base model is obtained, a normal preprocess and train cycle as described above (in training from scratch) should be run, adding `--base_model_path /path/to/base/model` to the call.
 
 ```bash
-cd realtime
-mkdir build
-cd build
-cmake ../ -DCMAKE_PREFIX_PATH=/path/to/libtorch -DCMAKE_BUILD_TYPE=Release
-make install
+python train.py --name mytraining --base_model_path /path/to/base/model (--steps 10000000 --batch 16 --lr .001 --instrument vn)
 ```
 
-If you already have `pytorch` installed via pip inside a virtual environment, you can use the following `PREFIX_PATH`:
+## Playing with models
+TO DO
 
-```bash
-cmake ../ -DCMAKE_PREFIX_PATH=~/miniconda3/lib/python3.X/site-packages/torch -DCMAKE_BUILD_TYPE=Release
-make install
-```
+## Main changes from original repo
+* Automate training of separate models for each instrument
+* Add base model and finetuning logic
+* Implement exponential decay for training as described in the DDSP paper
+* Corrected issues pointed in reference repo
 
-By default, it will install the external in `~/Documents/Pd/externals`. 
+
+
+
+
+
