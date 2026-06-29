@@ -37,7 +37,7 @@ It will produce a file named `ddsp_pretrained_mytraining.ts`, that can later be 
 ## Finetuning from a base model
 
 ### Creating a base model
-> By default, we assume the base model will be trained on all the instruments except violin, trumpet and saxophone (since those will be used for finetuning and testing purposes). If another behaviour is intended, the following mentioned Python scripts should be modified.
+> By default, we assume the base model will be trained on all the instruments except violin, flute and trumpet (since those will be used for finetuning and testing purposes). If another behaviour is intended, the following mentioned Python scripts should be modified.
 
 To obtain a base model, you need to run
 ```bash
