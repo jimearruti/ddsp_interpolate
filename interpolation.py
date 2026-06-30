@@ -56,7 +56,8 @@ def get_interpolated_reverb_ir(ir_a, ir_b, alpha):
 
 
 @torch.no_grad()
-def get_interpolated_output(model1, model2, mean_loudness, std_loudness, pitch, loudness, alpha, ir1=None, ir2=None, reverb=True):
+def get_interpolated_output(model1, model2, mean_loudness, std_loudness, pitch, loudness, 
+                            alpha, ir1=None, ir2=None, reverb=True):
     amplitudes1 = get_amplitudes(model1, pitch, loudness, mean_loudness, std_loudness)
     amplitudes2 = get_amplitudes(model2, pitch, loudness, mean_loudness, std_loudness)
     amplitudes = (1 - alpha) * amplitudes1 + alpha * amplitudes2
@@ -124,3 +125,14 @@ def load_model_from_weights(path_to_weights, config, device="cpu"):
     model = DDSP(**config["model"])
     model.load_state_dict(state_model, strict=False)
     return model
+
+
+@torch.no_grad()
+def get_output_sweep(model1, model2, mean_loudness, std_loudness, pitch, loudness, 
+                        alpha, ir1=None, ir2=None, reverb=True):
+    alpha_values = np.linspace(0, 1, len(pitch))
+    output = np.zeros((len(alpha_values), pitch.shape[1], 1))
+    for alpha, i in zip(alpha_values, range(len(pitch))):
+        output[i] = get_interpolated_output(model1, model2, mean_loudness, std_loudness, 
+                        pitch[i], loudness[i], alpha, ir1, ir2, reverb)
+    return output
