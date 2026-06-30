@@ -12,6 +12,7 @@ from preprocess import preprocess
 import torch.nn as nn
 
 
+@torch.no_grad()
 def get_hidden(model, pitch, loudness, mean_l, std_l):
     normalised_loudness = (loudness - mean_l)/std_l
     hidden = torch.cat([
@@ -23,6 +24,7 @@ def get_hidden(model, pitch, loudness, mean_l, std_l):
     return hidden
 
 
+@torch.no_grad()
 def get_amplitudes(model, pitch, loudness, mean_l, std_l):
     hidden = get_hidden(model, pitch, loudness, mean_l, std_l)
 
@@ -40,17 +42,21 @@ def get_amplitudes(model, pitch, loudness, mean_l, std_l):
     amplitudes *= total_amp
     return amplitudes
 
+
+@torch.no_grad()
 def get_filter_param(model, pitch, loudness, mean_l, std_l):
     hidden = get_hidden(model, pitch, loudness, mean_l, std_l)
     param = scale_function(model.proj_matrices[1](hidden) - 5)
     return param
 
-def get_interpolated_reverb_ir(reverb_a, reverb_b, alpha):
-    ir_a = reverb_a.build_impulse()
-    ir_b = reverb_b.build_impulse()
+
+@torch.no_grad()
+def get_interpolated_reverb_ir(ir_a, ir_b, alpha):
     return (1 - alpha) * ir_a + alpha * ir_b
 
-def get_interpolated_output(model1, model2, mean_loudness, std_loudness, pitch, loudness, alpha, reverb=True):
+
+@torch.no_grad()
+def get_interpolated_output(model1, model2, mean_loudness, std_loudness, pitch, loudness, alpha, ir1=None, ir2=None, reverb=True):
     amplitudes1 = get_amplitudes(model1, pitch, loudness, mean_loudness, std_loudness)
     amplitudes2 = get_amplitudes(model2, pitch, loudness, mean_loudness, std_loudness)
     amplitudes = (1 - alpha) * amplitudes1 + alpha * amplitudes2
@@ -78,28 +84,24 @@ def get_interpolated_output(model1, model2, mean_loudness, std_loudness, pitch, 
 
     signal = harmonic + noise
 
-    # reverb
     if reverb == True:
-        reverb1 = model1.reverb
-        reverb2 = model2.reverb
-        
         len_signal = signal.shape[1]
-        ir = get_interpolated_reverb_ir(reverb1, reverb2, alpha)
-        ir = nn.functional.pad(ir, (0, 0, 0, len_signal - reverb1.length))
+        if ir1 is None:
+            ir1 = model1.reverb.build_impulse()
+        if ir2 is None:
+            ir2 = model2.reverb.build_impulse()
+        ir = get_interpolated_reverb_ir(ir1, ir2, alpha)
+        ir = nn.functional.pad(ir, (0, 0, 0, len_signal - model1.reverb.length))
         signal = fft_convolve(signal.squeeze(-1), ir.squeeze(-1)).unsqueeze(-1)
-        
     return signal
 
 
-def get_model_with_interpolated_weights(path_to_weights_1, path_to_weights_2, alpha, config):
-    state_model_1 = torch.load(path_to_weights_1)
-    state_model_2 = torch.load(path_to_weights_2)
+@torch.no_grad()
+def get_model_with_interpolated_weights(path_to_weights_1, path_to_weights_2, alpha, config, device="cpu"):
+    state_model_1 = torch.load(path_to_weights_1, map_location=device, weights_only=True)
+    state_model_2 = torch.load(path_to_weights_2, map_location=device, weights_only=True)
 
-    interp_state = {}
-    for key in state_model_1.keys():
-        print(key)
-        clean_key = key.removeprefix("ddsp.")
-        interp_state[clean_key] = (1 - alpha) * state_model_1[key] + alpha * state_model_2[key]
+    interp_state = interpolate_state_dict(state_model_1, state_model_2, alpha)
 
     model_interp = DDSP(**config["model"])
     model_interp.load_state_dict(interp_state, strict=False)
@@ -107,8 +109,18 @@ def get_model_with_interpolated_weights(path_to_weights_1, path_to_weights_2, al
     return model_interp
 
 
-def load_model_from_weights(path_to_weights, config):
-    state_model = torch.load(path_to_weights)
+@torch.no_grad()
+def interpolate_state_dict(state_model_1, state_model_2, alpha):
+    interp_state = {}
+    for key in state_model_1.keys():
+        clean_key = key.removeprefix("ddsp.")
+        interp_state[clean_key] = torch.lerp(state_model_1[key], state_model_2[key], alpha)
+    return interp_state
+
+
+@torch.no_grad()
+def load_model_from_weights(path_to_weights, config, device="cpu"):
+    state_model = torch.load(path_to_weights, map_location=device, weights_only=True)
     model = DDSP(**config["model"])
     model.load_state_dict(state_model, strict=False)
     return model
