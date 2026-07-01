@@ -211,7 +211,6 @@ def main():
             config["preprocess"]["out_dir"], instrument,
             args.BATCH, split=args.SPLIT_DATASET
         )
-        train_dataloader = dataloaders[0]
 
         run = wandb.init(
             project=args.NAME,
@@ -221,7 +220,7 @@ def main():
 
         opt = torch.optim.Adam(model.parameters(), lr=args.START_LR)
         schedule = get_scheduler(
-            len(train_dataloader), args.START_LR, args.STOP_LR, args.DECAY_OVER
+            args.START_LR, args.STOP_LR, args.DECAY_OVER
         )
 
         train(model, dataloaders, opt, schedule, config, save_path, device, args.STEPS)

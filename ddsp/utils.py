@@ -3,9 +3,8 @@ import numpy as np
 from ddsp.core import multiscale_fft, safe_log
 
 
-def get_scheduler(len_dataset, start_lr, stop_lr, length):
-    def schedule(epoch):
-        step = epoch * len_dataset
+def get_scheduler(start_lr, stop_lr, length):
+    def schedule(step):
         if step < length:
             t = step / length
             return start_lr * (stop_lr / start_lr) ** t
