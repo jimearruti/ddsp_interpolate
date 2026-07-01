@@ -13,20 +13,19 @@ import torch.nn as nn
 
 
 @torch.no_grad()
-def get_hidden(model, pitch, loudness, mean_l, std_l):
-    normalised_loudness = (loudness - mean_l)/std_l
+def get_hidden(model, pitch, loudness):
     hidden = torch.cat([
             model.in_mlps[0](pitch),
-            model.in_mlps[1](normalised_loudness),
+            model.in_mlps[1](loudness),
         ], -1)
-    hidden = torch.cat([model.gru(hidden)[0], pitch, normalised_loudness], -1)
+    hidden = torch.cat([model.gru(hidden)[0], pitch, loudness], -1)
     hidden = model.out_mlp(hidden)
     return hidden
 
 
 @torch.no_grad()
-def get_amplitudes(model, pitch, loudness, mean_l, std_l):
-    hidden = get_hidden(model, pitch, loudness, mean_l, std_l)
+def get_amplitudes(model, pitch, loudness):
+    hidden = get_hidden(model, pitch, loudness)
 
     param = scale_function(model.proj_matrices[0](hidden))
 
@@ -44,8 +43,8 @@ def get_amplitudes(model, pitch, loudness, mean_l, std_l):
 
 
 @torch.no_grad()
-def get_filter_param(model, pitch, loudness, mean_l, std_l):
-    hidden = get_hidden(model, pitch, loudness, mean_l, std_l)
+def get_filter_param(model, pitch, loudness):
+    hidden = get_hidden(model, pitch, loudness)
     param = scale_function(model.proj_matrices[1](hidden) - 5)
     return param
 
@@ -56,15 +55,15 @@ def get_interpolated_reverb_ir(ir_a, ir_b, alpha):
 
 
 @torch.no_grad()
-def get_interpolated_output(model1, model2, mean_loudness, std_loudness, pitch, loudness, 
+def get_interpolated_output(model1, model2, pitch, loudness, 
                             alpha, ir1=None, ir2=None, reverb=True):
-    amplitudes1 = get_amplitudes(model1, pitch, loudness, mean_loudness, std_loudness)
-    amplitudes2 = get_amplitudes(model2, pitch, loudness, mean_loudness, std_loudness)
+    amplitudes1 = get_amplitudes(model1, pitch, loudness)
+    amplitudes2 = get_amplitudes(model2, pitch, loudness)
     amplitudes = (1 - alpha) * amplitudes1 + alpha * amplitudes2
 
-    param1 = get_filter_param(model1, pitch, loudness, mean_loudness, std_loudness)
+    param1 = get_filter_param(model1, pitch, loudness)
     impulse1 = amp_to_impulse_response(param1, model1.block_size)
-    param2 = get_filter_param(model2, pitch, loudness, mean_loudness, std_loudness)
+    param2 = get_filter_param(model2, pitch, loudness)
     impulse2 = amp_to_impulse_response(param2, model2.block_size)
     impulse = (1 - alpha) * impulse1 + alpha * impulse2
     
@@ -115,7 +114,7 @@ def interpolate_state_dict(state_model_1, state_model_2, alpha):
     interp_state = {}
     for key in state_model_1.keys():
         clean_key = key.removeprefix("ddsp.")
-        interp_state[clean_key] = torch.lerp(state_model_1[key], state_model_2[key], alpha)
+        interp_state[clean_key] = (1 - alpha) * state_model_1[key] + alpha * state_model_2[key]
     return interp_state
 
 
@@ -128,11 +127,11 @@ def load_model_from_weights(path_to_weights, config, device="cpu"):
 
 
 @torch.no_grad()
-def get_output_sweep(model1, model2, mean_loudness, std_loudness, pitch, loudness, 
-                        alpha, ir1=None, ir2=None, reverb=True):
+def get_output_sweep(model1, model2, pitch, loudness, window_length, hop_length, reverb=True):
+    # Just a draft, add COLA-OLA method with hann window
     alpha_values = np.linspace(0, 1, len(pitch))
     output = np.zeros((len(alpha_values), pitch.shape[1], 1))
     for alpha, i in zip(alpha_values, range(len(pitch))):
-        output[i] = get_interpolated_output(model1, model2, mean_loudness, std_loudness, 
-                        pitch[i], loudness[i], alpha, ir1, ir2, reverb)
+        output[i] = get_interpolated_output(model1, model2, pitch[i], loudness[i], 
+                        alpha, reverb)
     return output
