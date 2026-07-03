@@ -127,11 +127,40 @@ def load_model_from_weights(path_to_weights, config, device="cpu"):
 
 
 @torch.no_grad()
-def get_output_sweep(model1, model2, pitch, loudness, window_length, hop_length, reverb=True):
-    # Just a draft, add COLA-OLA method with hann window
-    alpha_values = np.linspace(0, 1, len(pitch))
-    output = np.zeros((len(alpha_values), pitch.shape[1], 1))
-    for alpha, i in zip(alpha_values, range(len(pitch))):
-        output[i] = get_interpolated_output(model1, model2, pitch[i], loudness[i], 
-                        alpha, reverb)
+def get_output_sweep(model1, model2, pitch, loudness, window_length=8, hop_length=4, ir1=None, ir2=None, reverb=True):
+    block_size = model1.block_size
+    n_steps = pitch.shape[1]
+    n_audio_samples = n_steps * block_size
+
+    frame_count = int(np.ceil((n_steps - window_length) / hop_length)) + 1
+    alpha_values = np.linspace(0, 1, frame_count)
+
+    audio_window_length = window_length * block_size
+    window = torch.hann_window(audio_window_length, dtype=pitch.dtype, device=pitch.device)
+
+    output = torch.zeros(pitch.shape[0], n_audio_samples, 1, dtype=pitch.dtype, device=pitch.device)
+    window_sum = torch.zeros(1, n_audio_samples, 1, dtype=pitch.dtype, device=pitch.device)
+
+    for i in range(frame_count):
+        start = i * hop_length
+        end = min(start + window_length, n_steps)
+
+        #alpha = alpha_values[i]
+        alpha=0
+        frame_output = get_interpolated_output(
+            model1, model2, pitch[:,start:end],
+            loudness[:,start:end], alpha,
+            reverb=False
+        )  # (batch, (end-start)*block_size, 1)
+
+        current_frame_len = frame_output.shape[1]
+        a_start = start * block_size
+        a_end = a_start + current_frame_len
+
+        win_sliced = window[:current_frame_len].view(1, -1, 1)
+        output[:, a_start:a_end] += frame_output * win_sliced
+        window_sum[:, a_start:a_end] += win_sliced
+    
+    window_sum = torch.clamp(window_sum, min=1e-6)
+    output /= window_sum
     return output
