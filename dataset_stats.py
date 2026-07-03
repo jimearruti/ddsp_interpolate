@@ -22,6 +22,8 @@ def main():
     print("Analyzing preprocessed data...")
     
     for instrument in instruments:
+        duration_summary[instrument] = {}
+
         for split in ["train", "val", "test"]:
 
             signal_file = out_dir / instrument / split / "signals.npy"
@@ -38,12 +40,15 @@ def main():
             
             duration_summary[instrument][split] = duration_formatted
 
-    print("\n" + "="*40)
-    print(f"{'Instrument':<20} | {'Total Duration':<15}")
-    print("="*40)
-    for inst, dur in duration_summary.items():
-        print(f"{inst:<20} | {dur:<15}")
-    print("="*40)
+    print("\n" + "=" * 60)
+    print(f"{'Instrument':<20} | {'Split':<10} | {'Duration':<15}")
+    print("=" * 60)
+
+    for inst, splits in duration_summary.items():
+        for split, dur in splits.items():
+            print(f"{inst:<20} | {split:<10} | {dur:<15}")
+
+    print("=" * 60)
 
 if __name__ == "__main__":
     main()
