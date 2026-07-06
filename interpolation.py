@@ -127,10 +127,16 @@ def load_model_from_weights(path_to_weights, config, device="cpu"):
 
 
 @torch.no_grad()
-def get_interpolated_outputs_sweep(model1, model2, pitch, loudness, ir1=None, ir2=None, reverb=True):
+def get_interpolated_outputs_sweep(model1, model2, pitch, loudness, n_steps_no_morph, ir1=None, ir2=None, reverb=True):
     block_size = model1.block_size
-    n_steps = pitch.shape[1]
-    alpha_values = torch.linspace(0, 1, n_steps, device=pitch.device, dtype=pitch.dtype)
+    n_steps = pitch.shape[1]  
+    
+    alpha_values = torch.cat([
+        torch.zeros(n_steps_no_morph, device=pitch.device, dtype=pitch.dtype),
+        torch.linspace(0, 1, n_steps - 2 * n_steps_no_morph, device=pitch.device, dtype=pitch.dtype),
+        torch.ones(n_steps_no_morph, device=pitch.device, dtype=pitch.dtype)
+    ])
+    
     alpha_tensor = alpha_values.view(1, n_steps, 1)
 
     amplitudes1 = get_amplitudes(model1, pitch, loudness)
