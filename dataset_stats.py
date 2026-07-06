@@ -11,6 +11,8 @@ from train_base_model import make_dataloaders
 def main():
     class args(Config):
         CONFIG = "config.yaml"
+        BATCH = 16
+        SPLIT_DATASET = True
 
     args.parse_args()
 
