@@ -127,7 +127,57 @@ def load_model_from_weights(path_to_weights, config, device="cpu"):
 
 
 @torch.no_grad()
-def get_output_sweep(model1, model2, pitch, loudness, window_length=8, hop_length=4, ir1=None, ir2=None, reverb=True):
+def get_interpolated_outputs_sweep(model1, model2, pitch, loudness, ir1=None, ir2=None, reverb=True):
+    block_size = model1.block_size
+    n_steps = pitch.shape[1]
+    alpha_values = torch.linspace(0, 1, n_steps, device=pitch.device, dtype=pitch.dtype)
+    alpha_tensor = alpha_values.view(1, n_steps, 1)
+
+    amplitudes1 = get_amplitudes(model1, pitch, loudness)
+    amplitudes2 = get_amplitudes(model2, pitch, loudness)
+    
+    amplitudes = (1 - alpha_tensor) * amplitudes1 + alpha_tensor * amplitudes2
+
+    param1 = get_filter_param(model1, pitch, loudness)
+    impulse1 = amp_to_impulse_response(param1, model1.block_size)
+    param2 = get_filter_param(model2, pitch, loudness)
+    impulse2 = amp_to_impulse_response(param2, model2.block_size)
+    
+    impulse = (1 - alpha_tensor) * impulse1 + alpha_tensor * impulse2
+
+    
+    amplitudes = upsample(amplitudes, model1.block_size)
+    pitch = upsample(pitch, model1.block_size)
+    harmonic = harmonic_synth(pitch, amplitudes, model1.sampling_rate)
+
+    noise = torch.rand(
+        impulse.shape[0],
+        impulse.shape[1],
+        model1.block_size,
+        dtype=impulse.dtype,
+        device=impulse.device,
+    ).to(impulse) * 2 - 1
+
+    noise = fft_convolve(noise, impulse).contiguous()
+    noise = noise.reshape(noise.shape[0], -1, 1)
+
+    signal = harmonic + noise
+
+    if reverb == True:
+        len_signal = signal.shape[1]
+        if ir1 is None:
+            ir1 = model1.reverb.build_impulse()
+        if ir2 is None:
+            ir2 = model2.reverb.build_impulse()
+        alpha = 0.5
+        ir = get_interpolated_reverb_ir(ir1, ir2, alpha)
+        ir = nn.functional.pad(ir, (0, 0, 0, len_signal - model1.reverb.length))
+        signal = fft_convolve(signal.squeeze(-1), ir.squeeze(-1)).unsqueeze(-1)
+    return signal
+    
+
+@torch.no_grad()
+def get_interpolated_weights_sweep(model1, model2, pitch, loudness, window_length=8, hop_length=4, ir1=None, ir2=None, reverb=True):
     block_size = model1.block_size
     n_steps = pitch.shape[1]
     n_audio_samples = n_steps * block_size
