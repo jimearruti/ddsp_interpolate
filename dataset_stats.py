@@ -68,17 +68,20 @@ def main():
 
     # Instruments actually considered (present in preprocessed data)
     considered_instruments = [inst for inst, splits in duration_summary.items() if len(splits) > 0]
-
-    zscore_file = out_dir / "mean_std_loudness.csv"
-    with open(zscore_file, "w", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        writer.writerow(["mean_loudness", "std_loudness", "instruments_considered"])
-        writer.writerow([
-            float(mean_loudness),
-            float(std_loudness),
-            ";".join(considered_instruments),
-        ])
-
+    zscore_file = out_dir / "mean_std_loudness.yml"
+    
+    with open(zscore_file, "w", encoding="utf-8") as f:
+        yaml.dump(
+            {
+                "mean_loudness": float(mean_loudness),
+                "std_loudness": float(std_loudness),
+                "instruments_considered": considered_instruments,
+            },
+            f,
+            default_flow_style=False,
+            sort_keys=False,
+        )
+    
     print(f"Saved z-score stats to: {zscore_file}")
 
 
