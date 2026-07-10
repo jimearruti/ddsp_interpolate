@@ -78,10 +78,10 @@ for instrument1, instrument2 in combinations(["vn", "fl", "tpt"], 2):
 
             # extremes
             instrument1_output = model1.forward(pitch_tensor, loudness_norm).reshape(-1).detach().cpu().numpy()
-            torchaudio.save(f"results/{filename}_{instrument1}_{model_type}.wav",  instrument1_output, sample_rate=sr)
+            torchaudio.save(f"{results_folder}/{filename}_{instrument1}_{model_type}.wav",  instrument1_output, sample_rate=sr)
 
             instrument2_output = model2.forward(pitch_tensor, loudness_norm).reshape(-1).detach().cpu().numpy()
-            torchaudio.save(f"results/{filename}_{instrument2}_{model_type}.wav",  instrument2_output, sample_rate=sr)
+            torchaudio.save(f"{results_folder}/{filename}_{instrument2}_{model_type}.wav",  instrument2_output, sample_rate=sr)
 
             # interpolated output middle
             alpha = 0.5
@@ -92,7 +92,7 @@ for instrument1, instrument2 in combinations(["vn", "fl", "tpt"], 2):
                 loudness_norm, 
                 alpha=alpha
             )
-            torchaudio.save(f"results/{filename}_interpolated_output_{instrument1}_{instrument2}_{model_type}_alpha_{alpha}_with_reverb.wav", 
+            torchaudio.save(f"{results_folder}/{filename}_interpolated_output_{instrument1}_{instrument2}_{model_type}_alpha_{alpha}_with_reverb.wav", 
                             interpolated_output_middle_with_reverb, sample_rate=sr)
 
             interpolated_output_middle_without_reverb = get_interpolated_output(        
@@ -103,20 +103,20 @@ for instrument1, instrument2 in combinations(["vn", "fl", "tpt"], 2):
                 alpha=alpha,
                 reverb=False
             )
-            torchaudio.save(f"results/{filename}_interpolated_output_{instrument1}_{instrument2}_{model_type}_alpha_{alpha}_without_reverb.wav",  
+            torchaudio.save(f"{results_folder}/{filename}_interpolated_output_{instrument1}_{instrument2}_{model_type}_alpha_{alpha}_without_reverb.wav",  
                             interpolated_output_middle_without_reverb, sample_rate=sr)
             
             # interpolated output sweep
             n_steps_no_morph=2000
             interpolated_output_sweep_with_reverb = get_interpolated_outputs_sweep(model1, model2, pitch_tensor, loudness_norm, n_steps_no_morph, reverb=True)
-            torchaudio.save(f"results/{filename}_interpolated_output_sweep_{instrument1}_{instrument2}_{model_type}_with_reverb.wav",  
+            torchaudio.save(f"{results_folder}/{filename}_interpolated_output_sweep_{instrument1}_{instrument2}_{model_type}_with_reverb.wav",  
                             interpolated_output_sweep_with_reverb, sample_rate=sr)
             interpolated_output_sweep_without_reverb = get_interpolated_outputs_sweep(model1, model2, pitch_tensor, loudness_norm, n_steps_no_morph, reverb=False)
-            torchaudio.save(f"results/{filename}_interpolated_output_sweep_{instrument1}_{instrument2}_{model_type}_without_reverb.wav",  
+            torchaudio.save(f"{results_folder}/{filename}_interpolated_output_sweep_{instrument1}_{instrument2}_{model_type}_without_reverb.wav",  
                             interpolated_output_sweep_without_reverb, sample_rate=sr)
 
             # interpolated weights middle
             interpolated_weights_model = get_model_with_interpolated_weights(path1[model_type], path2[model_type], alpha, config)
             interpolated_weighs_audio = interpolated_weights_model(pitch_tensor, loudness_norm)
-            torchaudio.save(f"results/{filename}_interpolated_weights_{instrument1}_{instrument2}_{model_type}_alpha_{alpha}.wav", 
+            torchaudio.save(f"{results_folder}/{filename}_interpolated_weights_{instrument1}_{instrument2}_{model_type}_alpha_{alpha}.wav", 
                             interpolated_weighs_audio.reshape(-1).detach().cpu().numpy(), sample_rate=sr)
