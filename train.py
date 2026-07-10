@@ -146,6 +146,7 @@ def train(model, dataloaders, opt, schedule, config, save_path, device, total_st
     std_loudness = torch.tensor(std_loudness, device=device)
 
     best_loss = float("inf")
+    best_step = 0
     mean_loss = torch.zeros(1, device=device)
     n_element = 0
     step = 0
@@ -176,9 +177,17 @@ def train(model, dataloaders, opt, schedule, config, save_path, device, total_st
                 val_loss = evaluate(model, val_dataloader, mean_loudness, std_loudness, config, device)
  
                 signal = batch[0].to(device)
+
+                loss_to_track = val_loss if val_loss is not None else mean_loss_val
+                if loss_to_track < best_loss:
+                    best_step = step
+                    
                 best_loss = log_checkpoint(
                     model, signal, reconstructed_signal, mean_loss_val, val_loss, best_loss, step, save_path, config
                 )
+
+    config["train"]["best_step"] = best_step
+    config["train"]["best_loss"] = best_loss
       
 
 def main():
