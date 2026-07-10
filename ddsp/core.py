@@ -77,23 +77,41 @@ def scale_function(x):
     return 2 * torch.sigmoid(x)**(math.log(10)) + 1e-7
 
 
+def amplitude_to_db(amplitude):
+    amin = 1e-20  # Avoid log(0) instabilities.
+    db = torch.log10(torch.clamp(amplitude, min=amin))
+    db *= 20.0
+    return db
+
+
 def extract_loudness(signal, sampling_rate, block_size, n_fft=2048):
-    S = li.stft(
-        signal,
-        n_fft=n_fft,
-        hop_length=block_size,
-        win_length=n_fft,
-        center=True,
-    )
-    S = np.log(abs(S) + 1e-7)
+    # Made changes according to https://github.com/acids-ircam/ddsp_pytorch/pull/32
+    
+    # Temporarily a batch dimension for single examples.
+    is_1d = (len(signal.shape) == 1)
+    signal = signal[None, :] if is_1d else signal
+
+    # Take STFT.
+    amplitude = torch.stft(
+        signal, n_fft=n_fft, hop_length=block_size, 
+        win_length=n_fft, center=True, pad_mode='reflect', return_complex=True
+    ).abs()
+
+    # Compute power.
+    power_db = amplitude_to_db(amplitude)
+
+    # Perceptual weighting.
     f = li.fft_frequencies(sr=sampling_rate, n_fft=n_fft)
-    a_weight = li.A_weighting(f)
+    a_weight = li.A_weighting(f)[None,:,None]
+    loudness = power_db + a_weight
 
-    S = S + a_weight.reshape(-1, 1)
+    loudness = torch.mean(torch.pow(10, loudness / 10.0), axis=1)
+    loudness = 10.0 * torch.log10(torch.clamp(loudness, min=1e-20))
 
-    S = np.mean(S, 0)[..., :-1]
+    # Remove temporary batch dimension.
+    loudness = loudness[0] if is_1d else loudness
 
-    return S
+    return loudness
 
 
 def extract_pitch(signal, sampling_rate, block_size):
