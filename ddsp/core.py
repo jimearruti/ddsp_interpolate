@@ -83,9 +83,13 @@ def amplitude_to_db(amplitude):
     db *= 20.0
     return db
 
-
-def extract_loudness(signal, sampling_rate, block_size, n_fft=2048):
+def extract_loudness(signal, sampling_rate, block_size, n_fft=512):
     # Made changes according to https://github.com/acids-ircam/ddsp_pytorch/pull/32
+    # and contrasted with original ddsp tensorflow implementation
+
+    # convert to tensor
+    if isinstance(signal, np.ndarray):
+        signal = torch.tensor(signal)
     
     # Temporarily a batch dimension for single examples.
     is_1d = (len(signal.shape) == 1)
@@ -94,7 +98,8 @@ def extract_loudness(signal, sampling_rate, block_size, n_fft=2048):
     # Take STFT.
     amplitude = torch.stft(
         signal, n_fft=n_fft, hop_length=block_size, 
-        win_length=n_fft, center=True, pad_mode='reflect', return_complex=True
+        center=True, return_complex=True,
+        window=torch.hann_window(n_fft).to(signal)
     ).abs()
 
     # Compute power.
@@ -104,9 +109,15 @@ def extract_loudness(signal, sampling_rate, block_size, n_fft=2048):
     f = li.fft_frequencies(sr=sampling_rate, n_fft=n_fft)
     a_weight = li.A_weighting(f)[None,:,None]
     loudness = power_db + a_weight
-
+    
     loudness = torch.mean(torch.pow(10, loudness / 10.0), axis=1)
     loudness = 10.0 * torch.log10(torch.clamp(loudness, min=1e-20))
+
+    # Fix frame mismatch from padding
+    expected_length = signal.shape[-1] // block_size
+    # Slice the loudness sequence along the time axis to match
+    loudness = loudness[:, :expected_length]
+    # ------------------------------
 
     # Remove temporary batch dimension.
     loudness = loudness[0] if is_1d else loudness
