@@ -83,7 +83,7 @@ def amplitude_to_db(amplitude):
     db *= 20.0
     return db
 
-def extract_loudness(signal, sampling_rate, block_size, n_fft=512):
+def extract_loudness(signal, sampling_rate, block_size, n_fft=2048):
     # Made changes according to https://github.com/acids-ircam/ddsp_pytorch/pull/32
     # and contrasted with original ddsp tensorflow implementation
 
