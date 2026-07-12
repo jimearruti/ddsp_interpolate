@@ -1,41 +1,43 @@
-import csv
 import datetime
+import json
 import pathlib
+
 import numpy as np
+import soundfile as sf
 import yaml
 from effortless_config import Config
+
 from ddsp.core import mean_std_loudness
 from train_base_model import make_dataloaders
 
 
+def get_duration(f):
+    info = sf.info(str(f))
+    return info.frames / info.samplerate
+
 def analyze_dataset(config):
     out_dir = pathlib.Path(config["preprocess"]["out_dir"])
     instruments = config["data"]["instruments"]
-    sampling_rate = config["preprocess"]["sampling_rate"]
-
     duration_summary = {}
 
-    print("Analyzing preprocessed data...")
-    
     for instrument in instruments:
         duration_summary[instrument] = {}
+        split_file = out_dir / instrument / "split_files.json"
+        if not split_file.exists():
+            print(f"[WARNING] No split_files.json for {instrument}")
+            continue
 
-        for split in ["train", "val", "test"]:
+        with open(split_file) as f:
+            split_data = json.load(f)
 
-            signal_file = out_dir / instrument / split / "signals.npy"
-            
-            if not signal_file.exists():
-                print(f"[WARNING] No signals.npy found for {instrument} at {signal_file}")
-                continue
+        for split, files in split_data.items():
+            total_seconds = sum(get_duration(f) for f in files if pathlib.Path(f).exists())
+            duration_summary[instrument][split] = str(datetime.timedelta(seconds=int(total_seconds)))
 
-            signals_mmap = np.load(signal_file, mmap_mode="r")
-            total_samples = signals_mmap.size
+    return duration_summary
 
-            total_seconds = total_samples / sampling_rate
-            duration_formatted = str(datetime.timedelta(seconds=int(total_seconds)))
-            
-            duration_summary[instrument][split] = duration_formatted
 
+def print_duration_summary(duration_summary):
     print("\n" + "=" * 60)
     print(f"{'Instrument':<20} | {'Split':<10} | {'Duration':<15}")
     print("=" * 60)
@@ -47,7 +49,7 @@ def analyze_dataset(config):
     print("=" * 60)
 
 
-def get_stats_for_dataset(config, batch, split_dataset):
+def get_train_stats_for_dataset(config, batch, split_dataset):
     out_dir = pathlib.Path(config["preprocess"]["out_dir"])
     instruments = config["data"]["instruments"]
     
@@ -89,9 +91,9 @@ def main():
     with open(args.CONFIG, "r", encoding="utf-8") as config_file:
         config = yaml.safe_load(config_file)
 
-    analyze_dataset(config)
-    get_stats_for_dataset(config, args.BATCH, args.SPLIT_DATASET)
-
+    duration_summary = analyze_dataset(config)
+    print_duration_summary(duration_summary)
+    get_train_stats_for_dataset(config, args.BATCH, args.SPLIT_DATASET)
 
 
 if __name__ == "__main__":
