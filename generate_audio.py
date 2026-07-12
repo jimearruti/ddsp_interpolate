@@ -34,9 +34,7 @@ instrument_paths = {
     },
     "fl": {
         "fix": "runs/fix_LR/20260629_191900/fl/state.pth",
-        "exp_2048": "runs/from_scratch_exp_LR_after_loudness_fix/20260710_175112/fl/state.pth",
-        "exp_1024": "runs/from_scratch_exp_LR_after_loudness_fix_1024/20260711_134027/fl/state.pth",
-        "exp_512": "runs/from_scratch_exp_LR_after_loudness_fix_512/20260711_133838/fl/state.pth",        
+        "exp": "runs/from_scratch_exp_LR_after_loudness_fix/20260710_175112/fl/state.pth",     
         "finetuned": "runs/finetune_exp_LR/20260707_002157/fl/state.pth",
         "exported_model": "export/runs_fix_LR_20260629_191900_fl/ddsp_fl_pretrained.ts",
     },
@@ -67,7 +65,7 @@ mean_loudness = stats["mean_loudness"]
 std_loudness = stats["std_loudness"]
 
 
-for instrument1, instrument2 in [("vn", "fl")]:# combinations(["vn", "fl", "tpt"], 2):
+for instrument1, instrument2 in combinations(["vn", "fl", "tpt"], 2):
     print(f"working on {instrument1}->{instrument2}")
 
     instrument_recording_preprocesed_folder = os.path.join(files_processed_folder, instrument1)
@@ -100,14 +98,14 @@ for instrument1, instrument2 in [("vn", "fl")]:# combinations(["vn", "fl", "tpt"
 
         loudness_norm = (loudness_tensor - mean_loudness) / std_loudness
         
-        for model_type in [f"exp_{n_fft}"]: #["fix", "exp", "finetuned"]:    
+        for model_type in ["exp"]: #["fix", "exp", "finetuned"]:    
             print(f"the model is {model_type}")
-            # model1 = load_model_from_weights(path1[model_type], config)
+            model1 = load_model_from_weights(path1[model_type], config)
             model2 = load_model_from_weights(path2[model_type], config)
 
             # extremes
-            # instrument1_output = model1.forward(pitch_tensor, loudness_norm).reshape(1, -1).detach().cpu()
-            # torchaudio.save(f"{results_folder}/{filename}_{instrument1}_{model_type}.wav",  instrument1_output, sample_rate=sr)
+            instrument1_output = model1.forward(pitch_tensor, loudness_norm).reshape(1, -1).detach().cpu()
+            torchaudio.save(f"{results_folder}/{filename}_{instrument1}_{model_type}.wav",  instrument1_output, sample_rate=sr)
 
             instrument2_output = model2.forward(pitch_tensor, loudness_norm).reshape(1, -1).detach().cpu()
             torchaudio.save(f"{results_folder}/{filename}_{instrument2}_{model_type}.wav",  instrument2_output, sample_rate=sr)

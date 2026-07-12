@@ -117,7 +117,6 @@ def extract_loudness(signal, sampling_rate, block_size, n_fft=2048):
     expected_length = signal.shape[-1] // block_size
     # Slice the loudness sequence along the time axis to match
     loudness = loudness[:, :expected_length]
-    # ------------------------------
 
     # Remove temporary batch dimension.
     loudness = loudness[0] if is_1d else loudness
