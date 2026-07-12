@@ -8,17 +8,7 @@ from ddsp.core import mean_std_loudness
 from train_base_model import make_dataloaders
 
 
-def main():
-    class args(Config):
-        CONFIG = "config.yaml"
-        BATCH = 16
-        SPLIT_DATASET = True
-
-    args.parse_args()
-
-    with open(args.CONFIG, "r", encoding="utf-8") as config_file:
-        config = yaml.safe_load(config_file)
-
+def analyze_dataset(config):
     out_dir = pathlib.Path(config["preprocess"]["out_dir"])
     instruments = config["data"]["instruments"]
     sampling_rate = config["preprocess"]["sampling_rate"]
@@ -56,9 +46,14 @@ def main():
 
     print("=" * 60)
 
+
+def get_stats_for_dataset(config, batch, split_dataset):
+    out_dir = pathlib.Path(config["preprocess"]["out_dir"])
+    instruments = config["data"]["instruments"]
+    
     dataloaders = make_dataloaders(
         config["preprocess"]["out_dir"], instruments,
-        args.BATCH, split=args.SPLIT_DATASET
+        batch, split=split_dataset
     )
 
     train_dataloader, _, _ = dataloaders
@@ -66,8 +61,6 @@ def main():
 
     print(f"Mean loudness: {mean_loudness}, Std loudness: {std_loudness}")
 
-    # Instruments actually considered (present in preprocessed data)
-    considered_instruments = [inst for inst, splits in duration_summary.items() if len(splits) > 0]
     zscore_file = out_dir / "mean_std_loudness.yml"
     
     with open(zscore_file, "w", encoding="utf-8") as f:
@@ -75,7 +68,7 @@ def main():
             {
                 "mean_loudness": float(mean_loudness),
                 "std_loudness": float(std_loudness),
-                "instruments_considered": considered_instruments,
+                "instruments_considered": instruments,
             },
             f,
             default_flow_style=False,
@@ -83,6 +76,22 @@ def main():
         )
     
     print(f"Saved z-score stats to: {zscore_file}")
+
+
+def main():
+    class args(Config):
+        CONFIG = "config.yaml"
+        BATCH = 16
+        SPLIT_DATASET = True
+
+    args.parse_args()
+
+    with open(args.CONFIG, "r", encoding="utf-8") as config_file:
+        config = yaml.safe_load(config_file)
+
+    analyze_dataset(config)
+    get_stats_for_dataset(config, args.BATCH, args.SPLIT_DATASET)
+
 
 
 if __name__ == "__main__":
