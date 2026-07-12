@@ -26,9 +26,10 @@ preprocess:
   sampling_rate: &samplingrate 16000
   signal_length: &signallength 64000
   block_size: &blocksize 64 # must be a power of 2 if using realtime
+  n_fft: 2048
 
   oneshot: false # crop every audio file to exactly signal length
-  out_dir: ./preprocessed/
+  out_dir: ./preprocessed_2048/
 
 model:
   hidden_size: 512

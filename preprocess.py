@@ -53,15 +53,16 @@ class DatasetMultiInstrument(torch.utils.data.Dataset):
 
 
 def preprocess(
-    f, sampling_rate, block_size, signal_length, oneshot, **_):
+    f, sampling_rate, block_size, signal_length, oneshot, n_fft=2048, **_):
     '''Preprocess a single audio file.
     Args:
         f: Path to the audio file.
         sampling_rate: Sampling rate to load the audio file.
         block_size: Block size for pitch and loudness extraction.
         signal_length: Length of the output signal segments.
-        oneshot: If True, only process the first segment of the audio file.'''
-    
+        oneshot: If True, only process the first segment of the audio file.
+        nfft: Number of FFT bins for loudness extraction.'''
+
     x, _ = li.load(f, sr=sampling_rate)
     N = (signal_length - len(x) % signal_length) % signal_length
     x = np.pad(x, (0, N))
@@ -70,7 +71,7 @@ def preprocess(
         x = x[..., :signal_length]
 
     pitch = extract_pitch(x, sampling_rate, block_size)
-    loudness = extract_loudness(x, sampling_rate, block_size)
+    loudness = extract_loudness(x, sampling_rate, block_size, n_fft=n_fft)
 
     x = x.reshape(-1, signal_length)
     pitch = pitch.reshape(x.shape[0], -1)
