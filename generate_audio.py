@@ -24,6 +24,9 @@ with open(args.CONFIG, "r") as config_file:
 sr = config["preprocess"]["sampling_rate"]
 processed_folder = config["preprocess"]["out_dir"]
 n_fft=config["preprocess"]["n_fft"]
+results_folder = f"results_{n_fft}"
+files_processed_folder = f"{processed_folder}/per_track"
+
 
 instrument_paths = {
     "vn": {
@@ -47,8 +50,6 @@ instrument_paths = {
     },
 }
 
-results_folder = "results_1024"
-files_processed_folder = f"{processed_folder}/per_track"
 
 if not os.path.exists(results_folder):
     os.makedirs(results_folder)
