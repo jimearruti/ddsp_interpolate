@@ -28,8 +28,8 @@ preprocess:
   block_size: &blocksize 64 # must be a power of 2 if using realtime
 
   oneshot: false # crop every audio file to exactly signal length
-  out_dir: ./preprocessed_512/
-  n_fft: 512
+  out_dir: ./preprocessed/
+  n_fft: 2048
 
 model:
   hidden_size: 512
