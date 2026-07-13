@@ -122,7 +122,12 @@ def interpolate_state_dict(state_model_1, state_model_2, alpha):
 def load_model_from_weights(path_to_weights, config, device="cpu"):
     state_model = torch.load(path_to_weights, map_location=device, weights_only=True)
     model = DDSP(**config["model"])
-    model.load_state_dict(state_model, strict=False)
+    missing, unexpected = model.load_state_dict(state_model, strict=False)
+    if missing or unexpected:
+        print(f"WARNING loading {path_to_weights}:")
+        print(f"  missing keys: {missing}")
+        print(f"  unexpected keys: {unexpected}")
+    model.eval()
     return model
 
 
