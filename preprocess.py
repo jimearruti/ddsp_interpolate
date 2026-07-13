@@ -53,7 +53,7 @@ class DatasetMultiInstrument(torch.utils.data.Dataset):
 
 
 def preprocess(
-    f, sampling_rate, block_size, signal_length, oneshot, n_fft=2048, **_):
+    f, sampling_rate, block_size, signal_length, oneshot, n_fft, **_):
     '''Preprocess a single audio file.
     Args:
         f: Path to the audio file.

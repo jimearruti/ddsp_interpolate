@@ -7,7 +7,6 @@ import torchaudio
 import yaml
 from effortless_config import Config
 
-from dataset_stats import get_train_stats_for_dataset
 from interpolation import (
     get_interpolated_output,
     get_interpolated_outputs_sweep,
@@ -24,28 +23,31 @@ with open(args.CONFIG, "r") as config_file:
 
 sr = config["preprocess"]["sampling_rate"]
 processed_folder = config["preprocess"]["out_dir"]
+n_fft=config["preprocess"]["n_fft"]
 
 instrument_paths = {
     "vn": {
-        "exp": "runs/from_scratch_exp_LR_after_loudness_fix/20260712_130718/vn/state.pth",
+        "fix": "runs/fix_LR/20260629_191900/vn/state.pth",
+        "exp": "runs/exp_LR/20260701_100835/vn/state.pth",
         "finetuned": "runs/finetune_exp_LR/20260707_002157/vn/state.pth",
         "exported_model": "export/runs_fix_LR_20260629_191900_vn/ddsp_vn_pretrained.ts",
     },
     "fl": {
-        "exp": "runs/from_scratch_exp_LR_after_loudness_fix/20260710_175112/fl/state.pth",      
+        "fix": "runs/fix_LR/20260629_191900/fl/state.pth",
+        "exp": "runs/from_scratch_exp_LR_after_loudness_fix_512/20260711_133838/fl/state.pth",
+        # "exp": "runs/exp_LR/20260703_200324/fl/state.pth",
         "finetuned": "runs/finetune_exp_LR/20260707_002157/fl/state.pth",
         "exported_model": "export/runs_fix_LR_20260629_191900_fl/ddsp_fl_pretrained.ts",
     },
     "tpt": {
-        "exp": "runs/from_scratch_exp_LR_after_loudness_fix/20260712_131725/tpt/state.pth",
+        "fix": "runs/fix_LR/20260629_191900/tpt/state.pth",
+        "exp": "runs/debug/20260706_123700/tpt/state.pth",
         "finetuned": "runs/finetune_exp_LR/20260707_002157/tpt/state.pth",
         "exported_model": "export/runs_fix_LR_20260629_191900_tpt/ddsp_tpt_pretrained.ts",
     },
 }
 
-n_fft = config["preprocess"]["n_fft"]
-path_stats_file = f"{processed_folder}/mean_std_loudness.yml"
-results_folder = "results_after_normalization_change_and_loading_change"
+results_folder = "results_1024"
 files_processed_folder = f"{processed_folder}/per_track"
 
 if not os.path.exists(results_folder):
@@ -53,9 +55,9 @@ if not os.path.exists(results_folder):
 
 if not os.path.exists(files_processed_folder):
     os.makedirs(files_processed_folder)
-    
 
-for instrument1, instrument2 in permutations(["vn", "fl", "tpt"], 2):
+
+for instrument1, instrument2 in [("vn", "fl"), ("fl", "vn")]: #permutations(["vn", "fl", "tpt"], 2):
     print(f"working on {instrument1}->{instrument2}")
 
     instrument_recording_preprocesed_folder = os.path.join(files_processed_folder, instrument1)
