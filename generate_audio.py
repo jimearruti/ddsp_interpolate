@@ -1,6 +1,6 @@
 import json
 import os
-from itertools import combinations
+from itertools import permutations
 
 import torch
 import torchaudio
@@ -45,7 +45,7 @@ instrument_paths = {
 
 n_fft = config["preprocess"]["n_fft"]
 path_stats_file = f"{processed_folder}/mean_std_loudness.yml"
-results_folder = "results_after_normalization_change"
+results_folder = "results_after_normalization_change_and_loading_change"
 files_processed_folder = f"{processed_folder}/per_track"
 
 if not os.path.exists(results_folder):
@@ -55,7 +55,7 @@ if not os.path.exists(files_processed_folder):
     os.makedirs(files_processed_folder)
     
 
-for instrument1, instrument2 in combinations(["vn", "fl", "tpt"], 2):
+for instrument1, instrument2 in permutations(["vn", "fl", "tpt"], 2):
     print(f"working on {instrument1}->{instrument2}")
 
     instrument_recording_preprocesed_folder = os.path.join(files_processed_folder, instrument1)
