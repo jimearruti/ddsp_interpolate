@@ -45,7 +45,7 @@ instrument_paths = {
 
 n_fft = config["preprocess"]["n_fft"]
 path_stats_file = f"{processed_folder}/mean_std_loudness.yml"
-results_folder = "results"
+results_folder = "results_after_normalization_change"
 files_processed_folder = f"{processed_folder}/per_track"
 
 if not os.path.exists(results_folder):
@@ -53,14 +53,7 @@ if not os.path.exists(results_folder):
 
 if not os.path.exists(files_processed_folder):
     os.makedirs(files_processed_folder)
-
-if not os.path.exists(path_stats_file):
-    get_train_stats_for_dataset(config, batch=16, split_dataset=True)
-
-stats = yaml.safe_load(open(path_stats_file, "r")) 
-global_mean_loudness = stats["mean_loudness"]
-global_std_loudness = stats["std_loudness"]
-
+    
 
 for instrument1, instrument2 in combinations(["vn", "fl", "tpt"], 2):
     print(f"working on {instrument1}->{instrument2}")
@@ -75,21 +68,6 @@ for instrument1, instrument2 in combinations(["vn", "fl", "tpt"], 2):
     split_files_path = f"{processed_folder}/{instrument1}/split_files.json"
     with open(split_files_path, "r") as f:
         validation_files = json.load(f)["val"]
-
-    instrument1_config_path = "/".join(path1.split(".")[:-1]) + "config.yaml"
-    instrument2_config_path = "/".join(path2.split(".")[:-1]) + "config.yaml"
-
-    with open(instrument1_config_path, "r") as config_file_training:
-        instrument1_config = yaml.safe_load(config_file_training)
-
-    instrument1_mean_loudness = instrument1_config["preprocess"]["mean_loudness"]
-    instrument1_std_loudness = instrument1_config["preprocess"]["std_loudness"]
-
-    with open(instrument2_config_path, "r") as config_file_training:
-        instrument2_config = yaml.safe_load(config_file_training)
-
-    instrument2_mean_loudness = instrument2_config["preprocess"]["mean_loudness"]
-    instrument2_std_loudness = instrument2_config["preprocess"]["std_loudness"]
 
     for validation_file in validation_files:
         filename = validation_file.split("/")[-1]
@@ -108,13 +86,28 @@ for instrument1, instrument2 in combinations(["vn", "fl", "tpt"], 2):
             torch.save(loudness_tensor, loudness_tensor_path)
             torch.save(pitch_tensor, pitch_tensor_path)
 
-            loudness_norm_instrument1 = (loudness_tensor - instrument1_mean_loudness) / instrument1_std_loudness
-            loudness_norm_instrument2 = (loudness_tensor - instrument2_mean_loudness) / instrument2_std_loudness
-
         for model_type in [f"exp"]: #["fix", "exp", "finetuned"]:    
             print(f"the model is {model_type}")
             model1 = load_model_from_weights(path1[model_type], config)
             model2 = load_model_from_weights(path2[model_type], config)
+
+            instrument1_config_path = os.path.join(os.path.dirname(path1[model_type]), "config.yaml")
+            instrument2_config_path = os.path.join(os.path.dirname(path2[model_type]), "config.yaml")
+
+            with open(instrument1_config_path, "r") as config_file_training:
+                instrument1_config = yaml.safe_load(config_file_training)
+        
+            instrument1_mean_loudness = instrument1_config["data"]["mean_loudness"]
+            instrument1_std_loudness = instrument1_config["data"]["std_loudness"]
+        
+            with open(instrument2_config_path, "r") as config_file_training:
+                instrument2_config = yaml.safe_load(config_file_training)
+        
+            instrument2_mean_loudness = instrument2_config["data"]["mean_loudness"]
+            instrument2_std_loudness = instrument2_config["data"]["std_loudness"]
+
+            loudness_norm_instrument1 = (loudness_tensor - instrument1_mean_loudness) / instrument1_std_loudness
+            loudness_norm_instrument2 = (loudness_tensor - instrument2_mean_loudness) / instrument2_std_loudness
 
             # extremes
             instrument_1_audio = f"{results_folder}/{filename}_{instrument1}_{model_type}.wav"
