@@ -29,7 +29,7 @@ preprocess:
   n_fft: 2048
 
   oneshot: false # crop every audio file to exactly signal length
-  out_dir: ./preprocessed_2048/
+  out_dir: ./preprocessed
 
 model:
   hidden_size: 512
