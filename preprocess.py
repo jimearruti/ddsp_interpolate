@@ -11,6 +11,7 @@ from tqdm import tqdm
 from ddsp.core import extract_loudness, extract_pitch
 from effortless_config import Config
 
+
 def get_files(data_location: str, extension: str, **_) -> list[pathlib.Path]:
     return list(pathlib.Path(data_location).rglob(f"*.{extension}"))
 
@@ -106,7 +107,6 @@ def process_files(files, config):
 def main():
     class args(Config):
         CONFIG = "config.yaml"
-        SPLIT_DATASET = True
 
     args.parse_args()
 
@@ -116,31 +116,28 @@ def main():
     files = get_files(**config["data"])
 
     instruments = config["data"]["instruments"]
+    root_out_path = pathlib.Path(config["preprocess"]["out_dir"])
+    split_data = {}
 
     for instrument in instruments:
 
         files_instrument = [f for f in files if f.stem.split("_")[2] == instrument]
-        out_path = pathlib.Path(config["preprocess"]["out_dir"]) / instrument
+        out_path = root_out_path / instrument
 
-        if args.SPLIT_DATASET:
-            train_files, val_files, test_files = split_files(files_instrument)
-            for subset, subset_files in [("train", train_files), ("val", val_files), ("test", test_files)]:
-                signals, pitches, loudness = process_files(subset_files, config)
-                save_subdataset(signals, pitches, loudness, out_path / subset)
-            
-            split_data = {
-                "train": [str(file) for file in train_files],
-                "val": [str(file) for file in val_files],
-                "test": [str(file) for file in test_files],
-            }
+        train_files, val_files, test_files = split_files(files_instrument)
+        for subset, subset_files in [("train", train_files), ("val", val_files), ("test", test_files)]:
+            signals, pitches, loudness = process_files(subset_files, config)
+            save_subdataset(signals, pitches, loudness, out_path / subset)
 
-            with open(pathlib.Path(out_path / "split_files.json"), "w", encoding="utf-8") as f:
-                json.dump(split_data, f, indent=2)
-        
-        else:
-            train_files, val_files, test_files = files_instrument, [], []
-            signals, pitches, loudness = process_files(train_files, config)
-            save_subdataset(signals, pitches, loudness, out_path / "train")
+        split_data[instrument] = {
+            "train": [str(file) for file in train_files],
+            "val": [str(file) for file in val_files],
+            "test": [str(file) for file in test_files],
+        }
+
+    root_out_path.mkdir(parents=True, exist_ok=True)
+    with open(root_out_path / "split_files.json", "w", encoding="utf-8") as f:
+        json.dump(split_data, f, indent=2)
 
 
 if __name__ == "__main__":
