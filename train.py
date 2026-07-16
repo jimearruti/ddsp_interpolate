@@ -86,6 +86,9 @@ def log_checkpoint(model, signal, reconstructed_signal, mean_loss, val_loss, bes
     if loss_to_track < best_loss:
         best_loss = loss_to_track
         torch.save(model.state_dict(), save_path / "state.pth")
+
+    if not step % 5000:
+        torch.save(model.state_dict(), save_path / f"state_{step}.pth")
     
     return best_loss
 
