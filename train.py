@@ -26,8 +26,6 @@ class args(Config):
     STEPS = 30000
     BATCH = 16
     START_LR = 1e-3
-    STOP_LR = 1e-4
-    DECAY_OVER = 400000
     INSTRUMENT = None
     BASE_MODEL_PATH = None
 
@@ -101,7 +99,7 @@ def log_checkpoint(model, signal, reconstructed_signal, mean_loss, val_loss, bes
     return best_loss
 
 
-def train_step(model, batch, opt, scheduler,mean_loudness, std_loudness, config, device):
+def train_step(model, batch, opt, scheduler, mean_loudness, std_loudness, config, device):
     '''Perform a training step: compute the loss, backpropagate, and update the model parameters. Return the loss, gradient norm, and reconstructed signal for logging.'''
     signal, pitch, loudness = batch
     signal = signal.to(device)
@@ -166,12 +164,9 @@ def train(model, dataloaders, opt, scheduler, config, save_path, device, total_s
     for e in tqdm(range(epochs)):
         for batch in train_dataloader:
             loss, grad_norm, reconstructed_signal = train_step(
-                model, batch, opt, mean_loudness,
+                model, batch, opt, scheduler, mean_loudness,
                 std_loudness, config, device
             )
-
-            for g in opt.param_groups:
-                g["lr"] = scheduler.get_last_lr()[0]
 
             mean_loss += loss.detach()
             n_element += 1
