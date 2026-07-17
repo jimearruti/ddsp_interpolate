@@ -3,20 +3,20 @@ data:
   extension: "wav"
   instruments: [
     # strings
-    #'vn',
+    'vn',
     'va',
     'vc',
     'db',
     
     # woodwinds
-    #'fl',
+    'fl',
     'ob',
     'cl',
     'bn',
     
     #brass
     'sax',
-    #'tpt', 
+    'tpt', 
     'hn', 
     'tbn', 
     'tba',
@@ -30,6 +30,9 @@ preprocess:
   oneshot: false # crop every audio file to exactly signal length
   out_dir: ./preprocessed/
   n_fft: 2048
+
+  val_ratio: 0
+  test_ratio: 0.3
 
 model:
   hidden_size: 512

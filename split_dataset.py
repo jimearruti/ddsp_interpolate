@@ -44,49 +44,87 @@ def print_split_counts(counts: dict) -> None:
         )
 
 
-def build_piece_split_map(files, val_ratio=0.1, test_ratio=0.1, seed=42):
-    """Assign each unique piece to exactly one split, so the same piece
-    can never land in different splits for different instruments."""
-    pieces = sorted({get_piece(f) for f in files})
+def build_piece_split_map(files, val_ratio=0.1, test_ratio=0.1, seed=42, n_trials=200, check_instruments=()):
+    """Assign each piece to train/val/test, searching over random trials
+    to balance file-level ratios for the instruments in `check_instruments`
+    (other instruments still get split, just don't influence the search)."""
+    piece_instrument_counts = {}
+    for f in files:
+        piece = get_piece(f)
+        instrument = f.stem.split("_")[2]
+        piece_instrument_counts.setdefault(piece, {})
+        piece_instrument_counts[piece][instrument] = piece_instrument_counts[piece].get(instrument, 0) + 1
 
-    rng = np.random.default_rng(seed)
-    pieces = list(rng.permutation(pieces))
+    pieces = sorted(piece_instrument_counts.keys())
+    total_counts = {
+        inst: sum(piece_instrument_counts[p].get(inst, 0) for p in pieces)
+        for inst in check_instruments
+    }
 
     n = len(pieces)
-    n_test = max(1, int(test_ratio * n))
-    n_val = max(1, int(val_ratio * n))
+    n_test = 0 if test_ratio == 0 else max(1, int(test_ratio * n))
+    n_val = 0 if val_ratio == 0 else max(1, int(val_ratio * n))
 
+    rng = np.random.default_rng(seed)
+    best_split, best_score = None, None
+
+    for _ in range(n_trials):
+        perm = list(rng.permutation(pieces))
+        test_pieces = perm[:n_test]
+        val_pieces = perm[n_test:n_test + n_val]
+        train_pieces = perm[n_test + n_val:]
+
+        score = 0.0
+        for inst in check_instruments:
+            total = total_counts[inst]
+            if total == 0:
+                continue
+            test_count = sum(piece_instrument_counts[p].get(inst, 0) for p in test_pieces)
+            val_count = sum(piece_instrument_counts[p].get(inst, 0) for p in val_pieces)
+            score += (test_count / total - test_ratio) ** 2
+            score += (val_count / total - val_ratio) ** 2
+
+        if best_score is None or score < best_score:
+            best_score = score
+            best_split = (train_pieces, val_pieces, test_pieces)
+
+    train_pieces, val_pieces, test_pieces = best_split
     piece_split = {}
-    for p in pieces[:n_test]:
+    for p in test_pieces:
         piece_split[p] = "test"
-    for p in pieces[n_test:n_test + n_val]:
+    for p in val_pieces:
         piece_split[p] = "val"
-    for p in pieces[n_test + n_val:]:
+    for p in train_pieces:
         piece_split[p] = "train"
-
     return piece_split
 
 
-def split_files(files, instrument, piece_split, split_instruments=("vn", "fl", "tpt")):
-    """Assign files to train/val/test using a pre-computed, shared
-    piece -> split mapping. Instruments outside split_instruments
-    go entirely to train.
-    """
-    if instrument not in split_instruments:
-        return files, [], []
-
+def split_files(files, piece_split):
+    """Assign files to train/val/test using a pre-computed piece -> split
+    mapping. All instruments are split the same way."""
     train = [f for f in files if piece_split.get(get_piece(f)) == "train"]
     val = [f for f in files if piece_split.get(get_piece(f)) == "val"]
     test = [f for f in files if piece_split.get(get_piece(f)) == "test"]
 
     if not train:
-        raise ValueError(
-            f"No files left for train split for instrument '{instrument}' "
-            f"— reduce val/test ratios or check the piece_split mapping."
-        )
+        raise ValueError("No files left for train split — reduce val/test ratios or check the piece_split mapping.")
 
     return train, val, test
-    
+
+
+def check_split_ratios(split_data, val_ratio, test_ratio, check_instruments, tolerance=0.1):
+    for instrument in check_instruments:
+        subsets = split_data.get(instrument, {})
+        n_total = sum(len(subsets.get(s, [])) for s in ("train", "val", "test"))
+        if n_total == 0:
+            continue
+        actual_val = len(subsets.get("val", [])) / n_total
+        actual_test = len(subsets.get("test", [])) / n_total
+        if abs(actual_val - val_ratio) > tolerance:
+            print(f"Warning: '{instrument}' val ratio {actual_val:.2f} vs target {val_ratio:.2f}")
+        if abs(actual_test - test_ratio) > tolerance:
+            print(f"Warning: '{instrument}' test ratio {actual_test:.2f} vs target {test_ratio:.2f}")
+
 
 def get_duration(f):
     info = sf.info(str(f))
@@ -151,19 +189,18 @@ def main():
     root_out_path = pathlib.Path(config["preprocess"]["out_dir"])
     split_data = {}
 
-    split_instruments = ("vn", "fl", "tpt")
+    check_instruments = ("vn", "fl", "tpt")
+    val_ratio = config["preprocess"].get("val_ratio", 0.1)
+    test_ratio = config["preprocess"].get("test_ratio", 0.1)
 
-    split_instrument_files = [
-        f for f in files if f.stem.split("_")[2] in split_instruments
-    ]
-    piece_split = build_piece_split_map(split_instrument_files, val_ratio=0.1, test_ratio=0.1, seed=42)
+    piece_split = build_piece_split_map(
+        files, val_ratio=val_ratio, test_ratio=test_ratio, seed=42,
+        n_trials=200, check_instruments=check_instruments
+    )
 
     for instrument in instruments:
         files_instrument = [f for f in files if f.stem.split("_")[2] == instrument]
-
-        train_files, val_files, test_files = split_files(
-            files_instrument, instrument, piece_split, split_instruments=split_instruments
-        )
+        train_files, val_files, test_files = split_files(files_instrument, piece_split)
 
         split_data[instrument] = {
             "train": [str(file) for file in train_files],
@@ -174,6 +211,8 @@ def main():
     root_out_path.mkdir(parents=True, exist_ok=True)
     with open(root_out_path / "split_files.json", "w", encoding="utf-8") as f:
         json.dump(split_data, f, indent=2)
+
+    check_split_ratios(split_data, val_ratio, test_ratio, check_instruments)
 
     counts = count_split_files(split_data)
     print_split_counts(counts)
