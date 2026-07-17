@@ -217,6 +217,8 @@ def main():
         else config["data"]["instruments"]
     )
 
+    split_data = load_split_data(config["preprocess"]["out_dir"])
+
     for instrument in instruments:
         save_path = pathlib.Path(args.ROOT) / args.NAME / timestamp / instrument
         save_path.mkdir(parents=True, exist_ok=True)
@@ -227,8 +229,7 @@ def main():
             model.load_state_dict(torch.load(args.BASE_MODEL_PATH, map_location=device))
 
         dataloaders = make_dataloaders(
-            config["preprocess"]["out_dir"], instrument,
-            args.BATCH, split=args.SPLIT_DATASET
+            config["preprocess"]["out_dir"], instrument, args.BATCH, split_data
         )
 
         run = wandb.init(
