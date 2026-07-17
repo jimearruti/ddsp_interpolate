@@ -1,3 +1,4 @@
+import json
 import os
 import pathlib
 from datetime import datetime
@@ -22,31 +23,38 @@ class args(Config):
     CONFIG = "config.yaml"
     NAME = "debug"
     ROOT = "runs"
-    STEPS = 100000
+    STEPS = 30000
     BATCH = 16
     START_LR = 1e-3
     STOP_LR = 1e-4
     DECAY_OVER = 400000
     INSTRUMENT = None
-    SPLIT_DATASET = True
     BASE_MODEL_PATH = None
 
 
-def make_dataloaders(out_dir, instrument, batch_size, split=True):
+def load_split_data(out_dir):
+    with open(pathlib.Path(out_dir) / "split_files.json", "r", encoding="utf-8") as f:
+        return json.load(f)
+    
+
+def make_dataloaders(out_dir, instrument, batch_size, split_data):
     """Return (train, val, test) dataloaders, or (train, None, None) if split=False."""
     train_dataset = DatasetMultiInstrument(out_dir, instrument, subset="train")
     train_dataloader = torch.utils.data.DataLoader(
         train_dataset, batch_size, shuffle=True, drop_last=True
     )
 
-    if not split:
-        return train_dataloader, None, None
+    instrument_split = split_data.get(instrument, {})
+    
+    val_dataloader = None
+    if instrument_split.get("val"):
+        val_dataset = DatasetMultiInstrument(out_dir, instrument, subset="val")
+        val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size, shuffle=False, drop_last=False)
 
-    val_dataset  = DatasetMultiInstrument(out_dir, instrument, subset="val")
-    test_dataset = DatasetMultiInstrument(out_dir, instrument, subset="test")
-
-    val_dataloader  = torch.utils.data.DataLoader(val_dataset,  batch_size, shuffle=False, drop_last=False)
-    test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size, shuffle=False, drop_last=False)
+    test_dataloader = None
+    if instrument_split.get("test"):
+        test_dataset = DatasetMultiInstrument(out_dir, instrument, subset="test")
+        test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size, shuffle=False, drop_last=False)
 
     return train_dataloader, val_dataloader, test_dataloader
 
@@ -135,7 +143,6 @@ def evaluate(model, dataloader, mean_loudness, std_loudness, config, device):
 
     model.train()
     return total_loss / n if n > 0 else float("inf")
-
 
 
 def train(model, dataloaders, opt, schedule, config, save_path, device, total_steps):
