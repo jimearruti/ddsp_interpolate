@@ -14,7 +14,7 @@ from tqdm import tqdm
 
 from ddsp.core import mean_std_loudness
 from ddsp.model import DDSP
-from ddsp.utils import get_scheduler, spectral_loss
+from ddsp.utils import spectral_loss
 from preprocess import DatasetMultiInstrument
 
 
@@ -101,7 +101,7 @@ def log_checkpoint(model, signal, reconstructed_signal, mean_loss, val_loss, bes
     return best_loss
 
 
-def train_step(model, batch, opt, mean_loudness, std_loudness, config, device):
+def train_step(model, batch, opt, scheduler,mean_loudness, std_loudness, config, device):
     '''Perform a training step: compute the loss, backpropagate, and update the model parameters. Return the loss, gradient norm, and reconstructed signal for logging.'''
     signal, pitch, loudness = batch
     signal = signal.to(device)
@@ -117,6 +117,7 @@ def train_step(model, batch, opt, mean_loudness, std_loudness, config, device):
     loss.backward()
     grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), float("inf"))
     opt.step()
+    scheduler.step()
 
     return loss, grad_norm, reconstructed_signal
 
@@ -145,7 +146,7 @@ def evaluate(model, dataloader, mean_loudness, std_loudness, config, device):
     return total_loss / n if n > 0 else float("inf")
 
 
-def train(model, dataloaders, opt, schedule, config, save_path, device, total_steps):
+def train(model, dataloaders, opt, scheduler, config, save_path, device, total_steps):
     train_dataloader, val_dataloader, _ = dataloaders
 
     mean_loudness, std_loudness = mean_std_loudness(train_dataloader)
@@ -170,7 +171,7 @@ def train(model, dataloaders, opt, schedule, config, save_path, device, total_st
             )
 
             for g in opt.param_groups:
-                g["lr"] = schedule(step)
+                g["lr"] = scheduler.get_last_lr()[0]
 
             mean_loss += loss.detach()
             n_element += 1
@@ -239,11 +240,9 @@ def main():
         )
 
         opt = torch.optim.Adam(model.parameters(), lr=args.START_LR)
-        schedule = get_scheduler(
-            args.START_LR, args.STOP_LR, args.DECAY_OVER
-        )
+        scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=10000, gamma=0.98)
 
-        train(model, dataloaders, opt, schedule, config, save_path, device, args.STEPS)
+        train(model, dataloaders, opt, scheduler, config, save_path, device, args.STEPS)
 
         with open(save_path / "config.yaml", "w") as out_config:
             yaml.safe_dump(config, out_config)
