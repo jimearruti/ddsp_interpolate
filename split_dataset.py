@@ -1,8 +1,10 @@
-import pathlib
+import datetime
 import json
+import pathlib
+import yaml
 
 import numpy as np
-import yaml
+import soundfile as sf
 from effortless_config import Config
 
 
@@ -70,6 +72,36 @@ def split_files(files, val_ratio=0.1, test_ratio=0.1, seed=42):
 
     return train, val, test
 
+def get_duration(f):
+    info = sf.info(str(f))
+    return info.frames / info.samplerate
+
+def calculate_durations(split_data):
+    instruments = split_data.keys()
+    duration_summary = {}
+
+    for instrument in instruments:
+        duration_summary[instrument] = {}
+        split_data_instrument = split_data[instrument]
+
+        for split, files in split_data_instrument.items():
+            total_seconds = sum(get_duration(f) for f in files if pathlib.Path(f).exists())
+            duration_summary[instrument][split] = str(datetime.timedelta(seconds=int(total_seconds)))
+    
+    return duration_summary
+
+
+def print_durations(duration_summary):
+    print("\n" + "=" * 60)
+    print(f"{'Instrument':<20} | {'Split':<10} | {'Duration':<15}")
+    print("=" * 60)
+
+    for inst, splits in duration_summary.items():
+        for split, dur in splits.items():
+            print(f"{inst:<20} | {split:<10} | {dur:<15}")
+
+    print("=" * 60)
+
 
 def main():
     class args(Config):
@@ -106,6 +138,11 @@ def main():
     print_split_counts(counts)
     with open(root_out_path / "split_counts.json", "w", encoding="utf-8") as f:
         json.dump(counts, f, indent=2)
+
+    duration_summary = calculate_durations(split_data)
+    print_durations(duration_summary)
+    with open(root_out_path / "split_durations.json", "w", encoding="utf-8") as f:
+        json.dump(duration_summary, f, indent=2)
 
 
 if __name__ == "__main__":
