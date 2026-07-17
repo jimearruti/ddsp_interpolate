@@ -66,7 +66,7 @@ def preprocess(
 
 def process_files(files, config):
     if not files:
-        raise ValueError(f"No files to process — dataset may be too small to split.")
+        return None
     
     signals: list[np.ndarray] = []
     pitches: list[np.ndarray] = []
@@ -102,10 +102,18 @@ def preprocess_dataset(config):
         val_files = split_data_instrument["val"]
         test_files = split_data_instrument["test"]
 
+        if not train_files:
+            raise ValueError(
+                f"No training files for '{instrument}' — dataset may be too small to split."
+            )
         out_path = root_out_path / instrument
 
         for subset, subset_files in [("train", train_files), ("val", val_files), ("test", test_files)]:
-            signals, pitches, loudness = process_files(subset_files, config)
+            result = process_files(subset_files, config)
+            if result is None:
+                print(f"Skipping '{subset}' for '{instrument}': no files in split.")
+                continue
+            signals, pitches, loudness = result
             save_subdataset(signals, pitches, loudness, out_path / subset)
 
 
