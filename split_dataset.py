@@ -44,9 +44,9 @@ def print_split_counts(counts: dict) -> None:
         )
 
 
-def split_files(files, val_ratio=0.1, test_ratio=0.1, seed=42):
-    """Split at the piece level so the same piece never appears in
-    more than one of train/val/test."""
+def build_piece_split_map(files, val_ratio=0.1, test_ratio=0.1, seed=42):
+    """Assign each unique piece to exactly one split, so the same piece
+    can never land in different splits for different instruments."""
     pieces = sorted({get_piece(f) for f in files})
 
     rng = np.random.default_rng(seed)
@@ -56,25 +56,42 @@ def split_files(files, val_ratio=0.1, test_ratio=0.1, seed=42):
     n_test = max(1, int(test_ratio * n))
     n_val = max(1, int(val_ratio * n))
 
-    test_pieces = set(pieces[:n_test])
-    val_pieces = set(pieces[n_test:n_test + n_val])
-    train_pieces = set(pieces[n_test + n_val:])
+    piece_split = {}
+    for p in pieces[:n_test]:
+        piece_split[p] = "test"
+    for p in pieces[n_test:n_test + n_val]:
+        piece_split[p] = "val"
+    for p in pieces[n_test + n_val:]:
+        piece_split[p] = "train"
 
-    if not train_pieces:
+    return piece_split
+
+
+def split_files(files, instrument, piece_split, split_instruments=("vn", "fl", "tpt")):
+    """Assign files to train/val/test using a pre-computed, shared
+    piece -> split mapping. Instruments outside split_instruments
+    go entirely to train.
+    """
+    if instrument not in split_instruments:
+        return files, [], []
+
+    train = [f for f in files if piece_split.get(get_piece(f)) == "train"]
+    val = [f for f in files if piece_split.get(get_piece(f)) == "val"]
+    test = [f for f in files if piece_split.get(get_piece(f)) == "test"]
+
+    if not train:
         raise ValueError(
-            f"No pieces left for train split (only {n} unique pieces "
-            f"for this instrument) — reduce val/test ratios or check filtering."
+            f"No files left for train split for instrument '{instrument}' "
+            f"— reduce val/test ratios or check the piece_split mapping."
         )
 
-    train = [f for f in files if get_piece(f) in train_pieces]
-    val = [f for f in files if get_piece(f) in val_pieces]
-    test = [f for f in files if get_piece(f) in test_pieces]
-
     return train, val, test
+    
 
 def get_duration(f):
     info = sf.info(str(f))
     return info.frames / info.samplerate
+
 
 def calculate_durations(split_data):
     instruments = split_data.keys()
@@ -91,16 +108,32 @@ def calculate_durations(split_data):
     return duration_summary
 
 
-def print_durations(duration_summary):
-    print("\n" + "=" * 60)
-    print(f"{'Instrument':<20} | {'Split':<10} | {'Duration':<15}")
-    print("=" * 60)
+def _parse_hhmmss(s: str) -> int:
+    """Parse an 'H:MM:SS' string (as produced by str(datetime.timedelta))
+    back into total seconds."""
+    h, m, sec = s.split(":")
+    return int(h) * 3600 + int(m) * 60 + int(sec)
 
-    for inst, splits in duration_summary.items():
-        for split, dur in splits.items():
-            print(f"{inst:<20} | {split:<10} | {dur:<15}")
 
-    print("=" * 60)
+def print_durations(duration_summary: dict) -> None:
+    header = f"{'instrument':<12}{'train':>12}{'val':>12}{'test':>12}{'total':>12}"
+    print(header)
+    print("-" * len(header))
+    for instrument, splits in duration_summary.items():
+        train = splits.get("train", "0:00:00")
+        val = splits.get("val", "0:00:00")
+        test = splits.get("test", "0:00:00")
+
+        total_seconds = sum(_parse_hhmmss(s) for s in (train, val, test))
+        total = str(datetime.timedelta(seconds=total_seconds))
+
+        print(
+            f"{instrument:<12}"
+            f"{train:>12}"
+            f"{val:>12}"
+            f"{test:>12}"
+            f"{total:>12}"
+        )
 
 
 def main():
@@ -118,11 +151,19 @@ def main():
     root_out_path = pathlib.Path(config["preprocess"]["out_dir"])
     split_data = {}
 
-    for instrument in instruments:
+    split_instruments = ("vn", "fl", "tpt")
 
+    split_instrument_files = [
+        f for f in files if f.stem.split("_")[2] in split_instruments
+    ]
+    piece_split = build_piece_split_map(split_instrument_files, val_ratio=0.1, test_ratio=0.1, seed=42)
+
+    for instrument in instruments:
         files_instrument = [f for f in files if f.stem.split("_")[2] == instrument]
 
-        train_files, val_files, test_files = split_files(files_instrument)
+        train_files, val_files, test_files = split_files(
+            files_instrument, instrument, piece_split, split_instruments=split_instruments
+        )
 
         split_data[instrument] = {
             "train": [str(file) for file in train_files],
