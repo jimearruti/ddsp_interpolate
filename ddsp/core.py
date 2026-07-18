@@ -12,6 +12,7 @@ def safe_log(x):
 
 
 def combine_mean_var(mean_a, var_a, n_a, mean_b, var_b, n_b):
+    # From https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Parallel_algorithm
     n = n_a + n_b
     delta = mean_b - mean_a
     mean = mean_a + delta * n_b / n
@@ -30,7 +31,10 @@ def mean_std_loudness(dataset):
         n = x.numel()
         stats.append((x.mean().item(), x.var(unbiased=False).item(), n))
 
-    mean, var, n = reduce(lambda a, b: combine_mean_var(*a, *b), stats)
+    mean, var, n = stats[0]
+    for m, v, cnt in stats[1:]:
+        mean, var, n = combine_mean_var(mean, var, n, m, v, cnt)
+    
     return mean, var ** 0.5
 
 
