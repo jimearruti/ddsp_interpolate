@@ -1,14 +1,10 @@
-import IPython
 import torch
-from effortless_config import Config
+import torch.nn as nn
 import numpy as np
-import yaml
 
 from ddsp.core import (scale_function, remove_above_nyquist, 
                         upsample, harmonic_synth, fft_convolve, amp_to_impulse_response)
 from ddsp.model import DDSP
-
-import torch.nn as nn
 
 
 @torch.no_grad()
