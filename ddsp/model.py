@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 from .core import mlp, gru, scale_function, remove_above_nyquist, upsample
 from .core import harmonic_synth, amp_to_impulse_response, fft_convolve
-from .core import resample
 import math
 
 
@@ -106,7 +105,9 @@ class DDSP(nn.Module):
 
         return signal
 
-def realtime_forward(self, pitch, loudness):
+    def forward_sweep(self, pitch, loudness, new_weights_dict):
+        self.update_weights(new_weights_dict)
+
         hidden = torch.cat([
             self.in_mlps[0](pitch),
             self.in_mlps[1](loudness),
@@ -161,3 +162,9 @@ def realtime_forward(self, pitch, loudness):
         signal = harmonic + noise
 
         return signal
+    
+    def update_weights(self, new_weights_dict):
+        include_prefixes = ("in_mlps.", "gru.", "out_mlp.", "proj_matrices.")
+
+        filtered = {k: v for k, v in new_weights_dict.items() if k.startswith(include_prefixes)}
+        self.load_state_dict(filtered, strict=False)

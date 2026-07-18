@@ -96,6 +96,25 @@ def get_interpolated_output(model1, model2, pitch, loudness,
     return signal
 
 
+def update_interpolated_weights(model, new_weights_dict):
+    model.load_state_dict(new_weights_dict, strict=False)
+    return model
+
+
+@torch.no_grad()
+def interpolate_state_dict(state_model_1, state_model_2, alpha):
+    include_prefixes = ("in_mlps.", "gru.", "out_mlp.", "proj_matrices.")
+    interp_keys = [k for k in state_model_1.keys() if k.startswith(include_prefixes)]
+
+    reverb_learned = ("reverb.noise", "reverb.decay", "reverb.wet")
+    interp_keys += [k for k in reverb_learned if k in state_model_1.keys()]
+    
+    interp_state = {}
+    for key in interp_keys:
+        interp_state[key] = (1 - alpha) * state_model_1[key] + alpha * state_model_2[key]
+    return interp_state
+
+
 @torch.no_grad()
 def get_model_with_interpolated_weights(path_to_weights_1, path_to_weights_2, alpha, config, device="cpu"):
     state_model_1 = torch.load(path_to_weights_1, map_location=device, weights_only=True)
@@ -104,18 +123,10 @@ def get_model_with_interpolated_weights(path_to_weights_1, path_to_weights_2, al
     interp_state = interpolate_state_dict(state_model_1, state_model_2, alpha)
 
     model_interp = DDSP(**config["model"])
-    model_interp.load_state_dict(interp_state, strict=False)
+    model_interp.load_state_dict(state_model_1, strict=False)
+    model_interp = update_interpolated_weights(model_interp, interp_state)
 
     return model_interp
-
-
-@torch.no_grad()
-def interpolate_state_dict(state_model_1, state_model_2, alpha):
-    interp_state = {}
-    for key in state_model_1.keys():
-        clean_key = key.removeprefix("ddsp.")
-        interp_state[clean_key] = (1 - alpha) * state_model_1[key] + alpha * state_model_2[key]
-    return interp_state
 
 
 @torch.no_grad()
