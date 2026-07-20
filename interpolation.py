@@ -59,7 +59,33 @@ def get_interpolated_reverb_ir(ir_a, ir_b, alpha):
 
 
 @torch.no_grad()
-def get_interpolated_output(model1, model2, pitch, loudness, 
+def apply_interpolated_reverb(signal, model1, model2, alpha, ir1=None, ir2=None):
+    '''
+    Apply interpolated reverb (between model1's and model2's reverb) to a dry signal.
+    Arguments:
+        signal: dry signal tensor of shape (batch, time, 1)
+        model1: first DDSP model
+        model2: second DDSP model
+        alpha: interpolation factor
+        ir1: reverb impulse response for model1
+        ir2: reverb impulse response for model2
+    Returns:
+        signal: signal tensor of shape (batch, time, 1) with reverb applied
+    '''
+    len_signal = signal.shape[1]
+    if ir1 is None:
+        ir1 = model1.reverb.build_impulse()
+    if ir2 is None:
+        ir2 = model2.reverb.build_impulse()
+    # interpolate reverb impulse responses
+    ir = get_interpolated_reverb_ir(ir1, ir2, alpha)
+    ir = nn.functional.pad(ir, (0, 0, 0, len_signal - model1.reverb.length))
+    # apply reverb to the signal
+    return fft_convolve(signal.squeeze(-1), ir.squeeze(-1)).unsqueeze(-1)
+
+
+@torch.no_grad()
+def get_interpolated_output(model1, model2, pitch, loudness,
                             alpha, ir1=None, ir2=None, reverb=True):
     '''
     Get the interpolated output from two models given pitch and (normalised) loudness inputs, 
@@ -114,16 +140,7 @@ def get_interpolated_output(model1, model2, pitch, loudness,
     signal = harmonic + noise
 
     if reverb == True:
-        len_signal = signal.shape[1]
-        if ir1 is None:
-            ir1 = model1.reverb.build_impulse()
-        if ir2 is None:
-            ir2 = model2.reverb.build_impulse()
-        # interpolate reverb impulse responses
-        ir = get_interpolated_reverb_ir(ir1, ir2, alpha)
-        ir = nn.functional.pad(ir, (0, 0, 0, len_signal - model1.reverb.length))
-        # apply reverb to the signal
-        signal = fft_convolve(signal.squeeze(-1), ir.squeeze(-1)).unsqueeze(-1)
+        signal = apply_interpolated_reverb(signal, model1, model2, alpha, ir1, ir2)
 
     return signal
 
