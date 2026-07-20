@@ -128,6 +128,76 @@ def get_interpolated_output(model1, model2, pitch, loudness,
     return signal
 
 
+@torch.no_grad()
+def get_interpolated_output_2(model1, model2, pitch, loudness, 
+                            alpha, ir1=None, ir2=None, reverb=True):
+    '''
+    Get the interpolated output from two models given pitch and (normalised) loudness inputs, 
+    and an interpolation factor alpha.
+    Arguments:
+        model1: first DDSP model
+        model2: second DDSP model
+        pitch: pitch input tensor of shape (batch, time, 1)
+        loudness: loudness input tensor of shape (batch, time, 1)
+        alpha: interpolation factor
+        ir1: reverb impulse response for model1
+        ir2: reverb impulse response for model2
+        reverb: whether to apply reverb
+    Returns:
+        signal: interpolated output signal tensor of shape (batch, time, 1)
+    '''
+
+    # get amplitudes and filter impulse response from both models
+    amplitudes1 = get_amplitudes(model1, pitch, loudness)
+    param1 = get_filter_param(model1, pitch, loudness)
+
+    amplitudes2 = get_amplitudes(model2, pitch, loudness)
+    param2 = get_filter_param(model2, pitch, loudness)
+
+    # interpolate amplitudes and impulse responses
+    amplitudes = (1 - alpha) * amplitudes1 + alpha * amplitudes2
+    param = (1 - alpha) * param1 + alpha * param2
+    
+    # upsample amplitudes and pitch to match sr (they are at control rate before)
+    amplitudes = upsample(amplitudes, model1.block_size)
+    pitch = upsample(pitch, model1.block_size)
+
+    # synthesize harmonic output
+    harmonic = harmonic_synth(pitch, amplitudes, model1.sampling_rate)
+
+    # impulse response for noise filter
+    impulse = amp_to_impulse_response(param, model2.block_size)
+    # generate noise
+    noise = torch.rand(
+        impulse.shape[0],
+        impulse.shape[1],
+        model1.block_size,
+        dtype=impulse.dtype,
+        device=impulse.device,
+    ).to(impulse) * 2 - 1
+
+    # filter noise with interpolated impulse response
+    noise = fft_convolve(noise, impulse).contiguous()
+    noise = noise.reshape(noise.shape[0], -1, 1)
+
+    # combine harmonic and noise to get the final signal
+    signal = harmonic + noise
+
+    if reverb == True:
+        len_signal = signal.shape[1]
+        if ir1 is None:
+            ir1 = model1.reverb.build_impulse()
+        if ir2 is None:
+            ir2 = model2.reverb.build_impulse()
+        # interpolate reverb impulse responses
+        ir = get_interpolated_reverb_ir(ir1, ir2, alpha)
+        ir = nn.functional.pad(ir, (0, 0, 0, len_signal - model1.reverb.length))
+        # apply reverb to the signal
+        signal = fft_convolve(signal.squeeze(-1), ir.squeeze(-1)).unsqueeze(-1)
+
+    return signal
+
+
 def update_weights(model, new_weights_dict):
     '''
     Update the model's weights with the weights from new_weights_dict.
@@ -271,7 +341,7 @@ def get_interpolated_outputs_sweep(model1, model2, pitch, loudness, n_steps_no_m
 
 @torch.no_grad()
 def get_interpolated_weights_sweep(path_to_weights_model_1, path_to_weights_model_2,
-                                   pitch, loudness, config, window_length):
+                                   pitch, loudness, config, window_length, alpha_values):
     interp_model = load_model_from_weights(path_to_weights_model_1, config)
 
     state_model_1 = torch.load(path_to_weights_model_1, map_location="cpu", weights_only=True)
@@ -282,7 +352,7 @@ def get_interpolated_weights_sweep(path_to_weights_model_1, path_to_weights_mode
     n_audio_samples = n_steps * block_size
 
     frame_count = int(np.ceil(n_steps / window_length))
-    alpha_values = np.linspace(0, 1, frame_count)
+    assert len(alpha_values) == frame_count, "Length of alpha_values must match the number of frames."
 
     output = torch.zeros(pitch.shape[0], n_audio_samples, 1, dtype=pitch.dtype, device=pitch.device)
 
