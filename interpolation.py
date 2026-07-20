@@ -1,15 +1,10 @@
-import IPython
 import torch
-from effortless_config import Config
+import torch.nn as nn
 import numpy as np
-import yaml
 
-from ddsp.core import (mean_std_loudness, scale_function, remove_above_nyquist, 
+from ddsp.core import (scale_function, remove_above_nyquist, 
                         upsample, harmonic_synth, fft_convolve, amp_to_impulse_response)
 from ddsp.model import DDSP
-from preprocess import preprocess
-
-import torch.nn as nn
 
 
 @torch.no_grad()
@@ -96,6 +91,25 @@ def get_interpolated_output(model1, model2, pitch, loudness,
     return signal
 
 
+def update_interpolated_weights(model, new_weights_dict):
+    model.load_state_dict(new_weights_dict, strict=False)
+    return model
+
+
+@torch.no_grad()
+def interpolate_state_dict(state_model_1, state_model_2, alpha):
+    include_prefixes = ("in_mlps.", "gru.", "out_mlp.", "proj_matrices.")
+    interp_keys = [k for k in state_model_1.keys() if k.startswith(include_prefixes)]
+
+    reverb_learned = ("reverb.noise", "reverb.decay", "reverb.wet")
+    interp_keys += [k for k in reverb_learned if k in state_model_1.keys()]
+    
+    interp_state = {}
+    for key in interp_keys:
+        interp_state[key] = (1 - alpha) * state_model_1[key] + alpha * state_model_2[key]
+    return interp_state
+
+
 @torch.no_grad()
 def get_model_with_interpolated_weights(path_to_weights_1, path_to_weights_2, alpha, config, device="cpu"):
     state_model_1 = torch.load(path_to_weights_1, map_location=device, weights_only=True)
@@ -104,18 +118,10 @@ def get_model_with_interpolated_weights(path_to_weights_1, path_to_weights_2, al
     interp_state = interpolate_state_dict(state_model_1, state_model_2, alpha)
 
     model_interp = DDSP(**config["model"])
-    model_interp.load_state_dict(interp_state, strict=False)
+    model_interp.load_state_dict(state_model_1, strict=False)
+    model_interp = update_interpolated_weights(model_interp, interp_state)
 
     return model_interp
-
-
-@torch.no_grad()
-def interpolate_state_dict(state_model_1, state_model_2, alpha):
-    interp_state = {}
-    for key in state_model_1.keys():
-        clean_key = key.removeprefix("ddsp.")
-        interp_state[clean_key] = (1 - alpha) * state_model_1[key] + alpha * state_model_2[key]
-    return interp_state
 
 
 @torch.no_grad()
@@ -188,40 +194,36 @@ def get_interpolated_outputs_sweep(model1, model2, pitch, loudness, n_steps_no_m
     
 
 @torch.no_grad()
-def get_interpolated_weights_sweep(model1, model2, pitch, loudness, window_length=8, hop_length=4, ir1=None, ir2=None, reverb=True):
-    block_size = model1.block_size
+def get_interpolated_weights_sweep(path_to_weights_model_1, path_to_weights_model_2,
+                                   pitch, loudness, config, window_length):
+    interp_model = load_model_from_weights(path_to_weights_model_1, config)
+
+    state_model_1 = torch.load(path_to_weights_model_1, map_location="cpu", weights_only=True)
+    state_model_2 = torch.load(path_to_weights_model_2, map_location="cpu", weights_only=True)
+
+    block_size = interp_model.block_size
     n_steps = pitch.shape[1]
     n_audio_samples = n_steps * block_size
 
-    frame_count = int(np.ceil((n_steps - window_length) / hop_length)) + 1
+    frame_count = int(np.ceil(n_steps / window_length))
     alpha_values = np.linspace(0, 1, frame_count)
 
-    audio_window_length = window_length * block_size
-    window = torch.hann_window(audio_window_length, dtype=pitch.dtype, device=pitch.device)
-
     output = torch.zeros(pitch.shape[0], n_audio_samples, 1, dtype=pitch.dtype, device=pitch.device)
-    window_sum = torch.zeros(1, n_audio_samples, 1, dtype=pitch.dtype, device=pitch.device)
 
     for i in range(frame_count):
-        start = i * hop_length
+        start = i * window_length
         end = min(start + window_length, n_steps)
 
-        #alpha = alpha_values[i]
-        alpha=0
-        frame_output = get_interpolated_output(
-            model1, model2, pitch[:,start:end],
-            loudness[:,start:end], alpha,
-            reverb=False
+        alpha = alpha_values[i]
+        interpolated_weights_dict = interpolate_state_dict(
+            state_model_1, state_model_2, alpha
+        )
+        frame_output = interp_model.forward_sweep(pitch[:, start:end, :], loudness[:, start:end, :],
+                                                  new_weights_dict=interpolated_weights_dict
         )  # (batch, (end-start)*block_size, 1)
 
-        current_frame_len = frame_output.shape[1]
         a_start = start * block_size
-        a_end = a_start + current_frame_len
+        a_end = a_start + frame_output.shape[1]
+        output[:, a_start:a_end] = frame_output
 
-        win_sliced = window[:current_frame_len].view(1, -1, 1)
-        output[:, a_start:a_end] += frame_output * win_sliced
-        window_sum[:, a_start:a_end] += win_sliced
-    
-    window_sum = torch.clamp(window_sum, min=1e-6)
-    output /= window_sum
     return output

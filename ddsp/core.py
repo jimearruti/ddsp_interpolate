@@ -5,22 +5,37 @@ import numpy as np
 import librosa as li
 import crepe
 import math
-
+from functools import reduce
 
 def safe_log(x):
     return torch.log(x + 1e-7)
 
 
+def combine_mean_var(mean_a, var_a, n_a, mean_b, var_b, n_b):
+    # From https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Parallel_algorithm
+    n = n_a + n_b
+    delta = mean_b - mean_a
+    mean = mean_a + delta * n_b / n
+    M2_a = var_a * n_a
+    M2_b = var_b * n_b
+    M2 = M2_a + M2_b + delta**2 * n_a * n_b / n
+    var = M2 / n
+    return mean, var, n
+
+
 @torch.no_grad()
 def mean_std_loudness(dataset):
-    mean = 0
-    std = 0
-    n = 0
+    stats = []
     for _, _, l in dataset:
-        n += 1
-        mean += (l.mean().item() - mean) / n
-        std += (l.std().item() - std) / n
-    return mean, std
+        x = l.flatten().double()
+        n = x.numel()
+        stats.append((x.mean().item(), x.var(unbiased=False).item(), n))
+
+    mean, var, n = stats[0]
+    for m, v, cnt in stats[1:]:
+        mean, var, n = combine_mean_var(mean, var, n, m, v, cnt)
+    
+    return mean, var ** 0.5
 
 
 def multiscale_fft(signal, scales, overlap):
