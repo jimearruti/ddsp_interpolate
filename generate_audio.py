@@ -69,7 +69,7 @@ with open(global_stats_path, "r") as f:
 
 split_files_path = os.path.join(processed_folder, "split_files.json")
 with open(split_files_path, "r") as f:
-    validation_files = json.load(f)["val"]
+    split_data = json.load(f)
 
 for instrument1, instrument2 in permutations(["vn", "fl", "tpt"], 2):
     print(f"working on {instrument1}->{instrument2}")
@@ -81,8 +81,8 @@ for instrument1, instrument2 in permutations(["vn", "fl", "tpt"], 2):
     path1 = instrument_paths[instrument1]
     path2 = instrument_paths[instrument2]
 
-    for validation_file in validation_files:
-        filename = validation_file.split("/")[-1]
+    for test_file in split_data[instrument1]["test"]:
+        filename = test_file.split("/")[-1]
         loudness_tensor_path = os.path.join(instrument_recording_preprocesed_folder, f"{filename}_loudness.pt")
         pitch_tensor_path = os.path.join(instrument_recording_preprocesed_folder, f"{filename}_pitch.pt")
        
@@ -92,7 +92,7 @@ for instrument1, instrument2 in permutations(["vn", "fl", "tpt"], 2):
             pitch_tensor = torch.load(pitch_tensor_path)
         else:
             print(f"processing {filename}")
-            x, p, l = preprocess(validation_file, **config["preprocess"])
+            x, p, l = preprocess(test_file, **config["preprocess"])
             pitch_tensor = torch.from_numpy(p).float().view(1, -1, 1)
             loudness_tensor = (l if isinstance(l, torch.Tensor) else torch.from_numpy(l)).float().view(1, -1, 1)
             torch.save(loudness_tensor, loudness_tensor_path)
