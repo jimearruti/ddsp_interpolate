@@ -8,6 +8,7 @@ import yaml
 from effortless_config import Config
 
 from interpolation import (
+    apply_interpolated_reverb,
     get_interpolated_output,
     get_model_with_interpolated_weights,
     load_model_from_weights,
@@ -123,18 +124,24 @@ def generate_interpolated_outputs(model1, model2, instrument1, instrument2, mode
         base_name = f"{filename}_interpolated_output_{instrument1}_{instrument2}_{model_type}_alpha_{alpha}"
 
         with_reverb_path = f"{results_folder}/{base_name}_with_reverb.wav"
-        if not os.path.exists(with_reverb_path):
-            output_with_reverb = get_interpolated_output(
-                model1, model2, pitch_tensor, loudness_norm_global, alpha=alpha
+        without_reverb_path = f"{results_folder}/{base_name}_without_reverb.wav"
+
+        need_with_reverb = not os.path.exists(with_reverb_path)
+        need_without_reverb = not os.path.exists(without_reverb_path)
+        if not need_with_reverb and not need_without_reverb:
+            continue
+
+        output_without_reverb = get_interpolated_output(
+            model1, model2, pitch_tensor, loudness_norm_global, alpha=alpha, reverb=False
+        )
+        if need_without_reverb:
+            save_audio_if_missing(without_reverb_path, output_without_reverb, sr)
+
+        if need_with_reverb:
+            output_with_reverb = apply_interpolated_reverb(
+                output_without_reverb, model1, model2, alpha
             )
             save_audio_if_missing(with_reverb_path, output_with_reverb, sr)
-
-        without_reverb_path = f"{results_folder}/{base_name}_without_reverb.wav"
-        if not os.path.exists(without_reverb_path):
-            output_without_reverb = get_interpolated_output(
-                model1, model2, pitch_tensor, loudness_norm_global, alpha=alpha, reverb=False
-            )
-            save_audio_if_missing(without_reverb_path, output_without_reverb, sr)
 
 
 def generate_interpolated_weights_outputs(path1, path2, instrument1, instrument2, model_type,
