@@ -17,7 +17,7 @@ from preprocess import preprocess
 
 INSTRUMENTS = ["vn", "fl", "tpt"]
 MODEL_TYPES = ["from_scratch", "finetuned"]
-ALPHAS = [0.25, 0.5, 0.75]
+ALPHAS = [0.0, 0.25, 0.5, 0.75, 1.0]
 
 
 class args(Config):
