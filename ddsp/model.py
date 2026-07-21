@@ -105,6 +105,52 @@ class DDSP(nn.Module):
 
         return signal
 
+    
+    def forward_dry(self, pitch, loudness):
+        hidden = torch.cat([
+            self.in_mlps[0](pitch),
+            self.in_mlps[1](loudness),
+        ], -1)
+        hidden = torch.cat([self.gru(hidden)[0], pitch, loudness], -1)
+        hidden = self.out_mlp(hidden)
+
+        # harmonic part
+        param = scale_function(self.proj_matrices[0](hidden))
+
+        total_amp = param[..., :1]
+        amplitudes = param[..., 1:]
+
+        amplitudes = remove_above_nyquist(
+            amplitudes,
+            pitch,
+            self.sampling_rate,
+        )
+        amplitudes /= amplitudes.sum(-1, keepdim=True)
+        amplitudes *= total_amp
+
+        amplitudes = upsample(amplitudes, self.block_size)
+        pitch = upsample(pitch, self.block_size)
+
+        harmonic = harmonic_synth(pitch, amplitudes, self.sampling_rate)
+
+        # noise part
+        param = scale_function(self.proj_matrices[1](hidden) - 5)
+
+        impulse = amp_to_impulse_response(param, self.block_size)
+        noise = torch.rand(
+            impulse.shape[0],
+            impulse.shape[1],
+            self.block_size,
+        ).to(impulse) * 2 - 1
+
+        noise = fft_convolve(noise, impulse).contiguous()
+        noise = noise.reshape(noise.shape[0], -1, 1)
+        
+        signal = harmonic + noise
+
+        return signal
+
+
     def forward_sweep(self, pitch, loudness, new_weights_dict):
         self.update_weights(new_weights_dict)
 
@@ -162,6 +208,7 @@ class DDSP(nn.Module):
         signal = harmonic + noise
 
         return signal
+    
     
     def update_weights(self, new_weights_dict):
         include_prefixes = ("in_mlps.", "gru.", "out_mlp.", "proj_matrices.")
