@@ -263,6 +263,10 @@ def process_pair(instrument1, instrument2, instrument_paths, split_data, mean, s
             loudness_tensor, mean, std, [instrument1, instrument2]
         )
 
+        track_name = os.path.splitext(filename)[0]
+        track_results_folder = os.path.join(results_folder, track_name)
+        os.makedirs(track_results_folder, exist_ok=True)
+
         for model_type in model_types:
             print(f"the model is {model_type}")
             with torch.no_grad():
@@ -271,27 +275,27 @@ def process_pair(instrument1, instrument2, instrument_paths, split_data, mean, s
 
                 generate_extremes(
                     model1, model2, instrument1, instrument2, model_type,
-                    pitch_tensor, loudness_norm, filename, results_folder, sr
+                    pitch_tensor, loudness_norm, filename, track_results_folder, sr
                 )
 
                 generate_interpolated_outputs(
                     model1, model2, instrument1, instrument2, model_type,
-                    pitch_tensor, loudness_tensor, mean, std, filename, results_folder, sr, alphas
+                    pitch_tensor, loudness_tensor, mean, std, filename, track_results_folder, sr, alphas
                 )
 
                 generate_interpolated_weights_outputs(
                     path1[model_type], path2[model_type], instrument1, instrument2, model_type,
-                    pitch_tensor, loudness_tensor, mean, std, filename, results_folder, sr, config, alphas
+                    pitch_tensor, loudness_tensor, mean, std, filename, track_results_folder, sr, config, alphas
                 )
 
                 generate_output_sweep(
                     model1, model2, instrument1, instrument2, model_type,
-                    pitch_tensor, loudness_tensor, mean, std, filename, results_folder, sr
+                    pitch_tensor, loudness_tensor, mean, std, filename, track_results_folder, sr
                 )
 
                 generate_weights_sweep(
                     path1[model_type], path2[model_type], instrument1, instrument2, model_type,
-                    pitch_tensor, loudness_tensor, mean, std, filename, results_folder, sr, config
+                    pitch_tensor, loudness_tensor, mean, std, filename, track_results_folder, sr, config
                 )
 
                 del model1, model2
