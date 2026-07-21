@@ -10,6 +10,8 @@ from effortless_config import Config
 from interpolation import (
     apply_interpolated_reverb,
     get_interpolated_output,
+    get_interpolated_outputs_sweep,
+    get_interpolated_weights_sweep,
     get_model_with_interpolated_weights,
     load_model_from_weights,
 )
@@ -19,6 +21,7 @@ from preprocess import preprocess
 INSTRUMENTS = ["vn", "fl", "tpt"]
 MODEL_TYPES = ["from_scratch", "finetuned"]
 ALPHAS = [0.0, 0.25, 0.5, 0.75, 1.0]
+SWEEP_WINDOW_LENGTH = 8
 
 
 class args(Config):
@@ -187,6 +190,59 @@ def generate_interpolated_weights_outputs(path1, path2, instrument1, instrument2
         del interpolated_weights_model
 
 
+def generate_output_sweep(model1, model2, instrument1, instrument2, model_type,
+                           pitch_tensor, loudness_tensor, mean, std, filename,
+                           results_folder, sr):
+    base_name = f"{filename}_sweep_output_{instrument1}_{instrument2}_{model_type}"
+    with_reverb_path = f"{results_folder}/{base_name}_with_reverb.wav"
+    without_reverb_path = f"{results_folder}/{base_name}_without_reverb.wav"
+
+    need_with_reverb = not os.path.exists(with_reverb_path)
+    need_without_reverb = not os.path.exists(without_reverb_path)
+    if not need_with_reverb and not need_without_reverb:
+        return
+
+    loudness_norm_global = (loudness_tensor - mean["global"]) / std["global"]
+    n_steps_no_morph = pitch_tensor.shape[1] // 3
+
+    if need_without_reverb:
+        output_without_reverb = get_interpolated_outputs_sweep(
+            model1, model2, pitch_tensor, loudness_norm_global, n_steps_no_morph, reverb=False
+        )
+        save_audio_if_missing(without_reverb_path, output_without_reverb, sr)
+
+    if need_with_reverb:
+        output_with_reverb = get_interpolated_outputs_sweep(
+            model1, model2, pitch_tensor, loudness_norm_global, n_steps_no_morph, reverb=True
+        )
+        save_audio_if_missing(with_reverb_path, output_with_reverb, sr)
+
+
+def generate_weights_sweep(path1, path2, instrument1, instrument2, model_type,
+                            pitch_tensor, loudness_tensor, mean, std, filename,
+                            results_folder, sr, config):
+    base_name = f"{filename}_sweep_weights_{instrument1}_{instrument2}_{model_type}"
+    path_out = f"{results_folder}/{base_name}.wav"
+    if os.path.exists(path_out):
+        return
+
+    loudness_norm_global = (loudness_tensor - mean["global"]) / std["global"]
+
+    n_steps = pitch_tensor.shape[1]
+    frame_count = -(-n_steps // SWEEP_WINDOW_LENGTH)
+    frames_no_morph = frame_count // 3
+    alpha_values = torch.cat([
+        torch.zeros(frames_no_morph),
+        torch.linspace(0, 1, frame_count - 2 * frames_no_morph),
+        torch.ones(frames_no_morph),
+    ])
+
+    output = get_interpolated_weights_sweep(
+        path1, path2, pitch_tensor, loudness_norm_global, config, SWEEP_WINDOW_LENGTH, alpha_values
+    )
+    save_audio_if_missing(path_out, output, sr)
+
+
 def process_pair(instrument1, instrument2, instrument_paths, split_data, mean, std,
                   preprocess_config, files_processed_folder, results_folder, sr, config,
                   model_types, alphas):
@@ -226,6 +282,16 @@ def process_pair(instrument1, instrument2, instrument_paths, split_data, mean, s
                 generate_interpolated_weights_outputs(
                     path1[model_type], path2[model_type], instrument1, instrument2, model_type,
                     pitch_tensor, loudness_tensor, mean, std, filename, results_folder, sr, config, alphas
+                )
+
+                generate_output_sweep(
+                    model1, model2, instrument1, instrument2, model_type,
+                    pitch_tensor, loudness_tensor, mean, std, filename, results_folder, sr
+                )
+
+                generate_weights_sweep(
+                    path1[model_type], path2[model_type], instrument1, instrument2, model_type,
+                    pitch_tensor, loudness_tensor, mean, std, filename, results_folder, sr, config
                 )
 
                 del model1, model2
