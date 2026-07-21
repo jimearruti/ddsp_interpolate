@@ -157,18 +157,33 @@ def generate_interpolated_weights_outputs(path1, path2, instrument1, instrument2
                                            pitch_tensor, loudness_tensor, mean, std, filename,
                                            results_folder, sr, config, alphas):
     for alpha in alphas:
-        interpolated_weights_audio_path = (
-            f"{results_folder}/{filename}_interpolated_weights_{instrument1}_{instrument2}_{model_type}_alpha_{alpha}.wav"
-        )
-        if os.path.exists(interpolated_weights_audio_path):
+        base_name = f"{filename}_interpolated_weights_{instrument1}_{instrument2}_{model_type}_alpha_{alpha}"
+
+        with_reverb_path = f"{results_folder}/{base_name}_with_reverb.wav"
+        without_reverb_path = f"{results_folder}/{base_name}_without_reverb.wav"
+
+        need_with_reverb = not os.path.exists(with_reverb_path)
+        need_without_reverb = not os.path.exists(without_reverb_path)
+        if not need_with_reverb and not need_without_reverb:
             continue
 
         loudness_norm_interp = normalize_loudness_interpolated(
             loudness_tensor, mean, std, instrument1, instrument2, alpha
         )
         interpolated_weights_model = get_model_with_interpolated_weights(path1, path2, alpha, config)
-        interpolated_weights_audio = interpolated_weights_model(pitch_tensor, loudness_norm_interp)
-        save_audio_if_missing(interpolated_weights_audio_path, interpolated_weights_audio, sr)
+
+        if need_without_reverb:
+            output_without_reverb = interpolated_weights_model(
+                pitch_tensor, loudness_norm_interp, apply_reverb=False
+            )
+            save_audio_if_missing(without_reverb_path, output_without_reverb, sr)
+
+        if need_with_reverb:
+            output_with_reverb = interpolated_weights_model(
+                pitch_tensor, loudness_norm_interp, apply_reverb=True
+            )
+            save_audio_if_missing(with_reverb_path, output_with_reverb, sr)
+
         del interpolated_weights_model
 
 
