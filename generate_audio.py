@@ -98,6 +98,12 @@ def normalize_loudness(loudness_tensor, mean, std, keys):
     return {key: (loudness_tensor - mean[key]) / std[key] for key in keys}
 
 
+def normalize_loudness_interpolated(loudness_tensor, mean, std, instrument1, instrument2, alpha):
+    interp_mean = (1 - alpha) * mean[instrument1] + alpha * mean[instrument2]
+    interp_std = (1 - alpha) * std[instrument1] + alpha * std[instrument2]
+    return (loudness_tensor - interp_mean) / interp_std
+
+
 def save_audio_if_missing(path_out, signal, sr):
     if os.path.exists(path_out):
         return
@@ -118,7 +124,7 @@ def generate_extremes(model1, model2, instrument1, instrument2, model_type,
 
 
 def generate_interpolated_outputs(model1, model2, instrument1, instrument2, model_type,
-                                   pitch_tensor, loudness_norm_global, filename,
+                                   pitch_tensor, loudness_tensor, mean, std, filename,
                                    results_folder, sr, alphas):
     for alpha in alphas:
         base_name = f"{filename}_interpolated_output_{instrument1}_{instrument2}_{model_type}_alpha_{alpha}"
@@ -131,8 +137,11 @@ def generate_interpolated_outputs(model1, model2, instrument1, instrument2, mode
         if not need_with_reverb and not need_without_reverb:
             continue
 
+        loudness_norm_interp = normalize_loudness_interpolated(
+            loudness_tensor, mean, std, instrument1, instrument2, alpha
+        )
         output_without_reverb = get_interpolated_output(
-            model1, model2, pitch_tensor, loudness_norm_global, alpha=alpha, reverb=False
+            model1, model2, pitch_tensor, loudness_norm_interp, alpha=alpha, reverb=False
         )
         if need_without_reverb:
             save_audio_if_missing(without_reverb_path, output_without_reverb, sr)
@@ -145,7 +154,7 @@ def generate_interpolated_outputs(model1, model2, instrument1, instrument2, mode
 
 
 def generate_interpolated_weights_outputs(path1, path2, instrument1, instrument2, model_type,
-                                           pitch_tensor, loudness_norm_global, filename,
+                                           pitch_tensor, loudness_tensor, mean, std, filename,
                                            results_folder, sr, config, alphas):
     for alpha in alphas:
         interpolated_weights_audio_path = (
@@ -154,8 +163,11 @@ def generate_interpolated_weights_outputs(path1, path2, instrument1, instrument2
         if os.path.exists(interpolated_weights_audio_path):
             continue
 
+        loudness_norm_interp = normalize_loudness_interpolated(
+            loudness_tensor, mean, std, instrument1, instrument2, alpha
+        )
         interpolated_weights_model = get_model_with_interpolated_weights(path1, path2, alpha, config)
-        interpolated_weights_audio = interpolated_weights_model(pitch_tensor, loudness_norm_global)
+        interpolated_weights_audio = interpolated_weights_model(pitch_tensor, loudness_norm_interp)
         save_audio_if_missing(interpolated_weights_audio_path, interpolated_weights_audio, sr)
         del interpolated_weights_model
 
@@ -177,9 +189,8 @@ def process_pair(instrument1, instrument2, instrument_paths, split_data, mean, s
         )
 
         loudness_norm = normalize_loudness(
-            loudness_tensor, mean, std, [instrument1, instrument2, "global"]
+            loudness_tensor, mean, std, [instrument1, instrument2]
         )
-        loudness_norm_global = loudness_norm["global"]
 
         for model_type in model_types:
             print(f"the model is {model_type}")
@@ -194,12 +205,12 @@ def process_pair(instrument1, instrument2, instrument_paths, split_data, mean, s
 
                 generate_interpolated_outputs(
                     model1, model2, instrument1, instrument2, model_type,
-                    pitch_tensor, loudness_norm_global, filename, results_folder, sr, alphas
+                    pitch_tensor, loudness_tensor, mean, std, filename, results_folder, sr, alphas
                 )
 
                 generate_interpolated_weights_outputs(
                     path1[model_type], path2[model_type], instrument1, instrument2, model_type,
-                    pitch_tensor, loudness_norm_global, filename, results_folder, sr, config, alphas
+                    pitch_tensor, loudness_tensor, mean, std, filename, results_folder, sr, config, alphas
                 )
 
                 del model1, model2
