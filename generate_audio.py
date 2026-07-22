@@ -9,11 +9,11 @@ from effortless_config import Config
 
 from interpolation import (
     apply_interpolated_reverb,
+    build_model_from_state_dict,
     get_interpolated_output,
     get_interpolated_outputs_sweep,
     get_interpolated_weights_sweep,
     get_model_with_interpolated_weights,
-    load_model_from_weights,
 )
 
 from preprocess import preprocess
@@ -162,9 +162,9 @@ def generate_interpolated_outputs(model1, model2, instrument1, instrument2, mode
             save_audio_if_missing(with_reverb_path, output_with_reverb, sr)
 
 
-def generate_interpolated_weights_outputs(path1, path2, instrument1, instrument2, model_type,
+def generate_interpolated_weights_outputs(state_model_1, state_model_2, instrument1, instrument2, model_type,
                                            pitch_tensor, loudness_tensor, mean, std, filename,
-                                           results_folder, sr, config, alphas):
+                                           results_folder, sr, config, alphas, device):
     for alpha in alphas:
         base_name = f"{filename}_interpolated_weights_{instrument1}_{instrument2}_{model_type}_alpha_{alpha}"
 
@@ -179,7 +179,9 @@ def generate_interpolated_weights_outputs(path1, path2, instrument1, instrument2
         loudness_norm_interp = normalize_loudness_interpolated(
             loudness_tensor, mean, std, instrument1, instrument2, alpha
         )
-        interpolated_weights_model = get_model_with_interpolated_weights(path1, path2, alpha, config)
+        interpolated_weights_model = get_model_with_interpolated_weights(
+            state_model_1, state_model_2, alpha, config, device=device
+        )
 
         if need_without_reverb:
             output_without_reverb = interpolated_weights_model(
@@ -225,9 +227,9 @@ def generate_output_sweep(model1, model2, instrument1, instrument2, model_type,
         save_audio_if_missing(with_reverb_path, output_with_reverb, sr)
 
 
-def generate_weights_sweep(path1, path2, instrument1, instrument2, model_type,
+def generate_weights_sweep(state_model_1, state_model_2, instrument1, instrument2, model_type,
                             pitch_tensor, loudness_tensor, mean, std, filename,
-                            results_folder, sr, config):
+                            results_folder, sr, config, device):
     base_name = f"{filename}_sweep_weights_{instrument1}_{instrument2}_{model_type}"
     with_reverb_path = f"{results_folder}/{base_name}_with_reverb.wav"
     without_reverb_path = f"{results_folder}/{base_name}_without_reverb.wav"
@@ -248,22 +250,22 @@ def generate_weights_sweep(path1, path2, instrument1, instrument2, model_type,
 
     if need_without_reverb:
         output_without_reverb = get_interpolated_weights_sweep(
-            path1, path2, pitch_tensor, loudness_tensor, mean, std, instrument1, instrument2,
-            config, SWEEP_WINDOW_LENGTH, alpha_values, reverb=False
+            state_model_1, state_model_2, pitch_tensor, loudness_tensor, mean, std, instrument1, instrument2,
+            config, SWEEP_WINDOW_LENGTH, alpha_values, reverb=False, device=device
         )
         save_audio_if_missing(without_reverb_path, output_without_reverb, sr)
 
     if need_with_reverb:
         output_with_reverb = get_interpolated_weights_sweep(
-            path1, path2, pitch_tensor, loudness_tensor, mean, std, instrument1, instrument2,
-            config, SWEEP_WINDOW_LENGTH, alpha_values, reverb=True
+            state_model_1, state_model_2, pitch_tensor, loudness_tensor, mean, std, instrument1, instrument2,
+            config, SWEEP_WINDOW_LENGTH, alpha_values, reverb=True, device=device
         )
         save_audio_if_missing(with_reverb_path, output_with_reverb, sr)
 
 
 def process_pair(instrument1, instrument2, instrument_paths, split_data, mean, std,
                   preprocess_config, files_processed_folder, results_folder, sr, config,
-                  model_types, alphas):
+                  model_types, alphas, device):
     print(f"working on {instrument1}->{instrument2}")
 
     instrument_cache_folder = os.path.join(files_processed_folder, instrument1)
@@ -276,6 +278,8 @@ def process_pair(instrument1, instrument2, instrument_paths, split_data, mean, s
         filename, pitch_tensor, loudness_tensor = get_or_process_tensors(
             test_file, instrument_cache_folder, preprocess_config
         )
+        pitch_tensor = pitch_tensor.to(device)
+        loudness_tensor = loudness_tensor.to(device)
 
         loudness_norm = normalize_loudness(
             loudness_tensor, mean, std, [instrument1, instrument2]
@@ -288,8 +292,10 @@ def process_pair(instrument1, instrument2, instrument_paths, split_data, mean, s
         for model_type in model_types:
             print(f"the model is {model_type}")
             with torch.no_grad():
-                model1 = load_model_from_weights(path1[model_type], config)
-                model2 = load_model_from_weights(path2[model_type], config)
+                state_model_1 = torch.load(path1[model_type], map_location=device, weights_only=True)
+                state_model_2 = torch.load(path2[model_type], map_location=device, weights_only=True)
+                model1 = build_model_from_state_dict(state_model_1, config, device=device)
+                model2 = build_model_from_state_dict(state_model_2, config, device=device)
 
                 save_models_used(
                     path1[model_type], path2[model_type], instrument1, instrument2,
@@ -307,8 +313,9 @@ def process_pair(instrument1, instrument2, instrument_paths, split_data, mean, s
                 )
 
                 generate_interpolated_weights_outputs(
-                    path1[model_type], path2[model_type], instrument1, instrument2, model_type,
-                    pitch_tensor, loudness_tensor, mean, std, filename, track_results_folder, sr, config, alphas
+                    state_model_1, state_model_2, instrument1, instrument2, model_type,
+                    pitch_tensor, loudness_tensor, mean, std, filename, track_results_folder, sr, config, alphas,
+                    device
                 )
 
                 generate_output_sweep(
@@ -317,17 +324,21 @@ def process_pair(instrument1, instrument2, instrument_paths, split_data, mean, s
                 )
 
                 generate_weights_sweep(
-                    path1[model_type], path2[model_type], instrument1, instrument2, model_type,
-                    pitch_tensor, loudness_tensor, mean, std, filename, track_results_folder, sr, config
+                    state_model_1, state_model_2, instrument1, instrument2, model_type,
+                    pitch_tensor, loudness_tensor, mean, std, filename, track_results_folder, sr, config, device
                 )
 
                 del model1, model2
-                torch.cuda.empty_cache()
+                if device.type == "cuda":
+                    torch.cuda.empty_cache()
 
 
 def main():
     args.parse_args()
     config = load_config(args.CONFIG)
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"using device: {device}")
 
     sr = config["preprocess"]["sampling_rate"]
     processed_folder = config["preprocess"]["out_dir"]
@@ -345,7 +356,7 @@ def main():
         process_pair(
             instrument1, instrument2, instrument_paths, split_data, mean, std,
             config["preprocess"], files_processed_folder, results_folder, sr, config,
-            MODEL_TYPES, ALPHAS
+            MODEL_TYPES, ALPHAS, device
         )
 
 

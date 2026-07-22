@@ -179,31 +179,48 @@ def interpolate_state_dict(state_model_1, state_model_2, alpha):
 
 
 @torch.no_grad()
-def get_model_with_interpolated_weights(path_to_weights_1, path_to_weights_2, alpha, config, device="cpu"):
+def get_model_with_interpolated_weights(state_model_1, state_model_2, alpha, config, device="cpu"):
     '''
-    Load two models from their weights and return a new model with interpolated weights.
+    Build a new model with weights interpolated between two already-loaded state dictionaries.
     Arguments:
-        path_to_weights_1: path to the weights of the first model
-        path_to_weights_2: path to the weights of the second model
+        state_model_1: state dictionary of the first model
+        state_model_2: state dictionary of the second model
         alpha: interpolation factor
         config: configuration dictionary for the model
-        device: device to load the model on
+        device: device to build the model on
     '''
-    # load the state dictionaries of the two models
-    state_model_1 = torch.load(path_to_weights_1, map_location=device, weights_only=True)
-    state_model_2 = torch.load(path_to_weights_2, map_location=device, weights_only=True)
-
     # interpolate the state dictionaries of relevant layers
     interp_state = interpolate_state_dict(state_model_1, state_model_2, alpha)
 
     # create a new model
-    model_interp = DDSP(**config["model"])
+    model_interp = DDSP(**config["model"]).to(device)
     # load the model weights from the first model
     model_interp.load_state_dict(state_model_1, strict=False)
     # overwrite relevant layers with the interpolated weights
     model_interp.load_state_dict(interp_state, strict=False)
 
     return model_interp
+
+
+@torch.no_grad()
+def build_model_from_state_dict(state_model, config, device="cpu"):
+    '''
+    Return a DDSP model built from an already-loaded state dictionary.
+    Arguments:
+        state_model: state dictionary of the model
+        config: configuration dictionary for the model
+        device: device to build the model on
+    '''
+    model = DDSP(**config["model"]).to(device)
+    missing, unexpected = model.load_state_dict(state_model, strict=False)
+    if missing or unexpected:
+        print("WARNING loading state dict:")
+        print(f"  missing keys: {missing}")
+        print(f"  unexpected keys: {unexpected}")
+
+    # set the model to evaluation mode
+    model.eval()
+    return model
 
 
 @torch.no_grad()
@@ -217,17 +234,7 @@ def load_model_from_weights(path_to_weights, config, device="cpu"):
     '''
     # load the state dictionary of the model
     state_model = torch.load(path_to_weights, map_location=device, weights_only=True)
-    model = DDSP(**config["model"])
-    # load the model weights from the state dictionary
-    missing, unexpected = model.load_state_dict(state_model, strict=False)
-    if missing or unexpected:
-        print(f"WARNING loading {path_to_weights}:")
-        print(f"  missing keys: {missing}")
-        print(f"  unexpected keys: {unexpected}")
-
-    # set the model to evaluation mode
-    model.eval()
-    return model
+    return build_model_from_state_dict(state_model, config, device)
 
 
 @torch.no_grad()
@@ -292,13 +299,10 @@ def get_interpolated_outputs_sweep(model1, model2, pitch, loudness, mean, std, i
     
 
 @torch.no_grad()
-def get_interpolated_weights_sweep(path_to_weights_model_1, path_to_weights_model_2,
+def get_interpolated_weights_sweep(state_model_1, state_model_2,
                                    pitch, loudness, mean, std, instrument1, instrument2,
-                                   config, window_length, alpha_values, reverb=True):
-    interp_model = load_model_from_weights(path_to_weights_model_1, config)
-
-    state_model_1 = torch.load(path_to_weights_model_1, map_location="cpu", weights_only=True)
-    state_model_2 = torch.load(path_to_weights_model_2, map_location="cpu", weights_only=True)
+                                   config, window_length, alpha_values, reverb=True, device="cpu"):
+    interp_model = build_model_from_state_dict(state_model_1, config, device=device)
 
     block_size = interp_model.block_size
     n_steps = pitch.shape[1]
@@ -313,7 +317,7 @@ def get_interpolated_weights_sweep(path_to_weights_model_1, path_to_weights_mode
         start = i * window_length
         end = min(start + window_length, n_steps)
 
-        alpha = alpha_values[i]
+        alpha = alpha_values[i].item()
         interpolated_weights_dict = interpolate_state_dict(
             state_model_1, state_model_2, alpha
         )
