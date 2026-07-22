@@ -202,31 +202,30 @@ def generate_output_sweep(model1, model2, instrument1, instrument2, model_type,
     if not need_with_reverb and not need_without_reverb:
         return
 
-    loudness_norm_global = (loudness_tensor - mean["global"]) / std["global"]
     n_steps_no_morph = pitch_tensor.shape[1] // 3
 
     if need_without_reverb:
         output_without_reverb = get_interpolated_outputs_sweep(
-            model1, model2, pitch_tensor, loudness_norm_global, n_steps_no_morph, reverb=False
+            model1, model2, pitch_tensor, loudness_tensor, mean, std, instrument1, instrument2,
+            n_steps_no_morph, reverb=False
         )
         save_audio_if_missing(without_reverb_path, output_without_reverb, sr)
 
     if need_with_reverb:
         output_with_reverb = get_interpolated_outputs_sweep(
-            model1, model2, pitch_tensor, loudness_norm_global, n_steps_no_morph, reverb=True
+            model1, model2, pitch_tensor, loudness_tensor, mean, std, instrument1, instrument2,
+            n_steps_no_morph, reverb=True
         )
         save_audio_if_missing(with_reverb_path, output_with_reverb, sr)
 
 
-def generate_weights_sweep(path1, path2, instrument1, instrument2, model_type,
+def generate_weights_interpolation_sweep(path1, path2, instrument1, instrument2, model_type,
                             pitch_tensor, loudness_tensor, mean, std, filename,
                             results_folder, sr, config):
     base_name = f"{filename}_sweep_weights_{instrument1}_{instrument2}_{model_type}"
     path_out = f"{results_folder}/{base_name}.wav"
     if os.path.exists(path_out):
         return
-
-    loudness_norm_global = (loudness_tensor - mean["global"]) / std["global"]
 
     n_steps = pitch_tensor.shape[1]
     frame_count = -(-n_steps // SWEEP_WINDOW_LENGTH)
@@ -238,7 +237,8 @@ def generate_weights_sweep(path1, path2, instrument1, instrument2, model_type,
     ])
 
     output = get_interpolated_weights_sweep(
-        path1, path2, pitch_tensor, loudness_norm_global, config, SWEEP_WINDOW_LENGTH, alpha_values
+        path1, path2, pitch_tensor, loudness_tensor, mean, std, instrument1, instrument2,
+        config, SWEEP_WINDOW_LENGTH, alpha_values
     )
     save_audio_if_missing(path_out, output, sr)
 

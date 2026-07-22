@@ -231,26 +231,31 @@ def load_model_from_weights(path_to_weights, config, device="cpu"):
 
 
 @torch.no_grad()
-def get_interpolated_outputs_sweep(model1, model2, pitch, loudness, n_steps_no_morph, ir1=None, ir2=None, reverb=True):
+def get_interpolated_outputs_sweep(model1, model2, pitch, loudness, mean, std, instrument1, instrument2,
+                                   n_steps_no_morph, ir1=None, ir2=None, reverb=True):
     block_size = model1.block_size
-    n_steps = pitch.shape[1]  
-    
+    n_steps = pitch.shape[1]
+
     alpha_values = torch.cat([
         torch.zeros(n_steps_no_morph, device=pitch.device, dtype=pitch.dtype),
         torch.linspace(0, 1, n_steps - 2 * n_steps_no_morph, device=pitch.device, dtype=pitch.dtype),
         torch.ones(n_steps_no_morph, device=pitch.device, dtype=pitch.dtype)
     ])
-    
+
     alpha_tensor = alpha_values.view(1, n_steps, 1)
 
-    amplitudes1 = get_amplitudes(model1, pitch, loudness)
-    amplitudes2 = get_amplitudes(model2, pitch, loudness)
-    
+    interp_mean = (1 - alpha_tensor) * mean[instrument1] + alpha_tensor * mean[instrument2]
+    interp_std = (1 - alpha_tensor) * std[instrument1] + alpha_tensor * std[instrument2]
+    loudness_norm = (loudness - interp_mean) / interp_std
+
+    amplitudes1 = get_amplitudes(model1, pitch, loudness_norm)
+    amplitudes2 = get_amplitudes(model2, pitch, loudness_norm)
+
     amplitudes = (1 - alpha_tensor) * amplitudes1 + alpha_tensor * amplitudes2
 
-    param1 = get_filter_param(model1, pitch, loudness)
+    param1 = get_filter_param(model1, pitch, loudness_norm)
     impulse1 = amp_to_impulse_response(param1, model1.block_size)
-    param2 = get_filter_param(model2, pitch, loudness)
+    param2 = get_filter_param(model2, pitch, loudness_norm)
     impulse2 = amp_to_impulse_response(param2, model2.block_size)
     
     impulse = (1 - alpha_tensor) * impulse1 + alpha_tensor * impulse2
@@ -288,7 +293,8 @@ def get_interpolated_outputs_sweep(model1, model2, pitch, loudness, n_steps_no_m
 
 @torch.no_grad()
 def get_interpolated_weights_sweep(path_to_weights_model_1, path_to_weights_model_2,
-                                   pitch, loudness, config, window_length, alpha_values):
+                                   pitch, loudness, mean, std, instrument1, instrument2,
+                                   config, window_length, alpha_values):
     interp_model = load_model_from_weights(path_to_weights_model_1, config)
 
     state_model_1 = torch.load(path_to_weights_model_1, map_location="cpu", weights_only=True)
@@ -311,7 +317,12 @@ def get_interpolated_weights_sweep(path_to_weights_model_1, path_to_weights_mode
         interpolated_weights_dict = interpolate_state_dict(
             state_model_1, state_model_2, alpha
         )
-        frame_output = interp_model.forward_sweep(pitch[:, start:end, :], loudness[:, start:end, :],
+
+        interp_mean = (1 - alpha) * mean[instrument1] + alpha * mean[instrument2]
+        interp_std = (1 - alpha) * std[instrument1] + alpha * std[instrument2]
+        loudness_norm = (loudness[:, start:end, :] - interp_mean) / interp_std
+
+        frame_output = interp_model.forward_sweep(pitch[:, start:end, :], loudness_norm,
                                                   new_weights_dict=interpolated_weights_dict
         )  # (batch, (end-start)*block_size, 1)
 
