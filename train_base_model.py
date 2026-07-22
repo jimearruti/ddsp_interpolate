@@ -79,6 +79,7 @@ def main():
     save_path.mkdir(parents=True, exist_ok=True)
 
     model = DDSP(**config["model"]).to(device)
+    torch.save(model.state_dict(), save_path / "state_000000.pth")
 
     if args.BASE_MODEL_PATH is not None:
         model.load_state_dict(torch.load(args.BASE_MODEL_PATH, map_location=device))
