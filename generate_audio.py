@@ -223,8 +223,12 @@ def generate_weights_sweep(path1, path2, instrument1, instrument2, model_type,
                             pitch_tensor, loudness_tensor, mean, std, filename,
                             results_folder, sr, config):
     base_name = f"{filename}_sweep_weights_{instrument1}_{instrument2}_{model_type}"
-    path_out = f"{results_folder}/{base_name}.wav"
-    if os.path.exists(path_out):
+    with_reverb_path = f"{results_folder}/{base_name}_with_reverb.wav"
+    without_reverb_path = f"{results_folder}/{base_name}_without_reverb.wav"
+
+    need_with_reverb = not os.path.exists(with_reverb_path)
+    need_without_reverb = not os.path.exists(without_reverb_path)
+    if not need_with_reverb and not need_without_reverb:
         return
 
     n_steps = pitch_tensor.shape[1]
@@ -236,11 +240,19 @@ def generate_weights_sweep(path1, path2, instrument1, instrument2, model_type,
         torch.ones(frames_no_morph),
     ])
 
-    output = get_interpolated_weights_sweep(
-        path1, path2, pitch_tensor, loudness_tensor, mean, std, instrument1, instrument2,
-        config, SWEEP_WINDOW_LENGTH, alpha_values
-    )
-    save_audio_if_missing(path_out, output, sr)
+    if need_without_reverb:
+        output_without_reverb = get_interpolated_weights_sweep(
+            path1, path2, pitch_tensor, loudness_tensor, mean, std, instrument1, instrument2,
+            config, SWEEP_WINDOW_LENGTH, alpha_values, reverb=False
+        )
+        save_audio_if_missing(without_reverb_path, output_without_reverb, sr)
+
+    if need_with_reverb:
+        output_with_reverb = get_interpolated_weights_sweep(
+            path1, path2, pitch_tensor, loudness_tensor, mean, std, instrument1, instrument2,
+            config, SWEEP_WINDOW_LENGTH, alpha_values, reverb=True
+        )
+        save_audio_if_missing(with_reverb_path, output_with_reverb, sr)
 
 
 def process_pair(instrument1, instrument2, instrument_paths, split_data, mean, std,

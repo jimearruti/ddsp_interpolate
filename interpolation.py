@@ -294,7 +294,7 @@ def get_interpolated_outputs_sweep(model1, model2, pitch, loudness, mean, std, i
 @torch.no_grad()
 def get_interpolated_weights_sweep(path_to_weights_model_1, path_to_weights_model_2,
                                    pitch, loudness, mean, std, instrument1, instrument2,
-                                   config, window_length, alpha_values):
+                                   config, window_length, alpha_values, reverb=True):
     interp_model = load_model_from_weights(path_to_weights_model_1, config)
 
     state_model_1 = torch.load(path_to_weights_model_1, map_location="cpu", weights_only=True)
@@ -329,5 +329,10 @@ def get_interpolated_weights_sweep(path_to_weights_model_1, path_to_weights_mode
         a_start = start * block_size
         a_end = a_start + frame_output.shape[1]
         output[:, a_start:a_end] = frame_output
+
+    if reverb:
+        reverb_weights_dict = interpolate_state_dict(state_model_1, state_model_2, 0.5)
+        interp_model.load_state_dict(reverb_weights_dict, strict=False)
+        output = interp_model.reverb(output)
 
     return output
