@@ -219,7 +219,7 @@ def generate_output_sweep(model1, model2, instrument1, instrument2, model_type,
         save_audio_if_missing(with_reverb_path, output_with_reverb, sr)
 
 
-def generate_weights_interpolation_sweep(path1, path2, instrument1, instrument2, model_type,
+def generate_weights_sweep(path1, path2, instrument1, instrument2, model_type,
                             pitch_tensor, loudness_tensor, mean, std, filename,
                             results_folder, sr, config):
     base_name = f"{filename}_sweep_weights_{instrument1}_{instrument2}_{model_type}"
