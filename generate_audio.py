@@ -113,6 +113,12 @@ def save_audio_if_missing(path_out, signal, sr):
     torchaudio.save(path_out, signal.reshape(1, -1).detach().cpu(), sample_rate=sr)
 
 
+def save_models_used(path1, path2, instrument1, instrument2, model_type, filename, results_folder):
+    path_out = os.path.join(results_folder, f"{filename}_{instrument1}_{instrument2}_{model_type}_models.json")
+    with open(path_out, "w") as f:
+        json.dump({instrument1: path1, instrument2: path2}, f, indent=2)
+
+
 def generate_extremes(model1, model2, instrument1, instrument2, model_type,
                        pitch_tensor, loudness_norm, filename, results_folder, sr):
     instrument_1_audio = f"{results_folder}/{filename}_{instrument1}_{model_type}.wav"
@@ -284,6 +290,11 @@ def process_pair(instrument1, instrument2, instrument_paths, split_data, mean, s
             with torch.no_grad():
                 model1 = load_model_from_weights(path1[model_type], config)
                 model2 = load_model_from_weights(path2[model_type], config)
+
+                save_models_used(
+                    path1[model_type], path2[model_type], instrument1, instrument2,
+                    model_type, filename, track_results_folder
+                )
 
                 generate_extremes(
                     model1, model2, instrument1, instrument2, model_type,
