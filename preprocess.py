@@ -8,6 +8,7 @@ import yaml
 from tqdm import tqdm
 
 from ddsp.core import extract_loudness, extract_pitch
+from ddsp.utils import high_pass_filter
 from effortless_config import Config
 
 
@@ -48,6 +49,8 @@ def preprocess(
         nfft: Number of FFT bins for loudness extraction.'''
 
     x, _ = li.load(f, sr=sampling_rate)
+    x = high_pass_filter(x, 80, fs=sampling_rate)
+
     N = (signal_length - len(x) % signal_length) % signal_length
     x = np.pad(x, (0, N))
 
