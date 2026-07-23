@@ -240,25 +240,24 @@ def generate_weights_sweep(state_model_1, state_model_2, instrument1, instrument
         return
 
     n_steps = pitch_tensor.shape[1]
-    frame_count = -(-n_steps // SWEEP_WINDOW_LENGTH)
-    frames_no_morph = frame_count // 3
+    frames_no_morph = n_steps // 3
     alpha_values = torch.cat([
         torch.zeros(frames_no_morph),
-        torch.linspace(0, 1, frame_count - 2 * frames_no_morph),
+        torch.linspace(0, 1, n_steps - 2 * frames_no_morph),
         torch.ones(frames_no_morph),
     ])
 
     if need_without_reverb:
         output_without_reverb = get_interpolated_weights_sweep(
             state_model_1, state_model_2, pitch_tensor, loudness_tensor, mean, std, instrument1, instrument2,
-            config, SWEEP_WINDOW_LENGTH, alpha_values, reverb=False, device=device
+            config, alpha_values, reverb=False, device=device
         )
         save_audio_if_missing(without_reverb_path, output_without_reverb, sr)
 
     if need_with_reverb:
         output_with_reverb = get_interpolated_weights_sweep(
             state_model_1, state_model_2, pitch_tensor, loudness_tensor, mean, std, instrument1, instrument2,
-            config, SWEEP_WINDOW_LENGTH, alpha_values, reverb=True, device=device
+            config, alpha_values, reverb=True, device=device
         )
         save_audio_if_missing(with_reverb_path, output_with_reverb, sr)
 

@@ -301,21 +301,18 @@ def get_interpolated_outputs_sweep(model1, model2, pitch, loudness, mean, std, i
 @torch.no_grad()
 def get_interpolated_weights_sweep(state_model_1, state_model_2,
                                    pitch, loudness, mean, std, instrument1, instrument2,
-                                   config, window_length, alpha_values, reverb=True, device="cpu"):
+                                   config, alpha_values, reverb=True, device="cpu"):
     interp_model = build_model_from_state_dict(state_model_1, config, device=device)
 
     block_size = interp_model.block_size
     n_steps = pitch.shape[1]
     n_audio_samples = n_steps * block_size
 
-    frame_count = int(np.ceil(n_steps / window_length))
-    assert len(alpha_values) == frame_count, "Length of alpha_values must match the number of frames."
+    assert len(alpha_values) == n_steps, "Length of alpha_values must match the number of frames."
 
     output = torch.zeros(pitch.shape[0], n_audio_samples, 1, dtype=pitch.dtype, device=pitch.device)
 
-    for i in range(frame_count):
-        start = i * window_length
-        end = min(start + window_length, n_steps)
+    for i in range(n_steps):
 
         alpha = alpha_values[i].item()
         interpolated_weights_dict = interpolate_state_dict(
@@ -324,13 +321,13 @@ def get_interpolated_weights_sweep(state_model_1, state_model_2,
 
         interp_mean = (1 - alpha) * mean[instrument1] + alpha * mean[instrument2]
         interp_std = (1 - alpha) * std[instrument1] + alpha * std[instrument2]
-        loudness_norm = (loudness[:, start:end, :] - interp_mean) / interp_std
+        loudness_norm = (loudness[:, i:i+1, :] - interp_mean) / interp_std
 
-        frame_output = interp_model.forward_sweep(pitch[:, start:end, :], loudness_norm,
+        frame_output = interp_model.forward_sweep(pitch[:, i:i+1, :], loudness_norm,
                                                   new_weights_dict=interpolated_weights_dict
         )  # (batch, (end-start)*block_size, 1)
 
-        a_start = start * block_size
+        a_start = i * block_size
         a_end = a_start + frame_output.shape[1]
         output[:, a_start:a_end] = frame_output
 
