@@ -92,13 +92,13 @@ def scale_function(x):
     return 2 * torch.sigmoid(x)**(math.log(10)) + 1e-7
 
 
-def amplitude_to_db(amplitude):
-    amin = 1e-20  # Avoid log(0) instabilities.
-    db = torch.log10(torch.clamp(amplitude, min=amin))
+def amplitude_to_db(amplitude, a_min=1e-7):
+    # amin to avoid log(0) instabilities.
+    db = torch.log10(torch.clamp(amplitude, min=a_min))
     db *= 20.0
     return db
 
-def extract_loudness(signal, sampling_rate, block_size, n_fft=2048):
+def extract_loudness(signal, sampling_rate, block_size, n_fft=2048, a_min=1e-7):
     # Made changes according to https://github.com/acids-ircam/ddsp_pytorch/pull/32
     # and contrasted with original ddsp tensorflow implementation
 
@@ -126,7 +126,7 @@ def extract_loudness(signal, sampling_rate, block_size, n_fft=2048):
     loudness = power_db + a_weight
     
     loudness = torch.mean(torch.pow(10, loudness / 10.0), axis=1)
-    loudness = 10.0 * torch.log10(torch.clamp(loudness, min=1e-20))
+    loudness = 10.0 * torch.log10(torch.clamp(loudness, min=a_min))
 
     # Fix frame mismatch from padding
     expected_length = signal.shape[-1] // block_size
