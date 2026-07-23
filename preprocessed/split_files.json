@@ -1,0 +1,242 @@
+{
+  "vn": {
+    "train": [
+      "../data/URMP/Dataset/20_Pavane_tpt_vn_vc/AuSep_2_vn_20_Pavane.wav",
+      "../data/URMP/Dataset/17_Nocturne_vn_fl_cl/AuSep_1_vn_17_Nocturne.wav",
+      "../data/URMP/Dataset/08_Spring_fl_vn/AuSep_2_vn_08_Spring.wav",
+      "../data/URMP/Dataset/32_Fugue_vn_vn_va_vc/AuSep_1_vn_32_Fugue.wav",
+      "../data/URMP/Dataset/32_Fugue_vn_vn_va_vc/AuSep_2_vn_32_Fugue.wav",
+      "../data/URMP/Dataset/27_King_vn_vn_va_sax/AuSep_1_vn_27_King.wav",
+      "../data/URMP/Dataset/27_King_vn_vn_va_sax/AuSep_2_vn_27_King.wav",
+      "../data/URMP/Dataset/25_Pirates_vn_vn_va_sax/AuSep_1_vn_25_Pirates.wav",
+      "../data/URMP/Dataset/25_Pirates_vn_vn_va_sax/AuSep_2_vn_25_Pirates.wav",
+      "../data/URMP/Dataset/19_Pavane_cl_vn_vc/AuSep_2_vn_19_Pavane.wav",
+      "../data/URMP/Dataset/39_Jerusalem_vn_vn_va_sax_db/AuSep_1_vn_39_Jerusalem.wav",
+      "../data/URMP/Dataset/39_Jerusalem_vn_vn_va_sax_db/AuSep_2_vn_39_Jerusalem.wav",
+      "../data/URMP/Dataset/38_Jerusalem_vn_vn_va_vc_db/AuSep_1_vn_38_Jerusalem.wav",
+      "../data/URMP/Dataset/38_Jerusalem_vn_vn_va_vc_db/AuSep_2_vn_38_Jerusalem.wav",
+      "../data/URMP/Dataset/26_King_vn_vn_va_vc/AuSep_1_vn_26_King.wav",
+      "../data/URMP/Dataset/26_King_vn_vn_va_vc/AuSep_2_vn_26_King.wav",
+      "../data/URMP/Dataset/24_Pirates_vn_vn_va_vc/AuSep_2_vn_24_Pirates.wav",
+      "../data/URMP/Dataset/24_Pirates_vn_vn_va_vc/AuSep_1_vn_24_Pirates.wav",
+      "../data/URMP/Dataset/18_Nocturne_vn_fl_tpt/AuSep_1_vn_18_Nocturne.wav",
+      "../data/URMP/Dataset/13_Hark_vn_vn_va/AuSep_2_vn_13_Hark.wav",
+      "../data/URMP/Dataset/13_Hark_vn_vn_va/AuSep_1_vn_13_Hark.wav",
+      "../data/URMP/Dataset/01_Jupiter_vn_vc/AuSep_1_vn_01_Jupiter.wav",
+      "../data/URMP/Dataset/12_Spring_vn_vn_vc/AuSep_1_vn_12_Spring.wav",
+      "../data/URMP/Dataset/12_Spring_vn_vn_vc/AuSep_2_vn_12_Spring.wav"
+    ],
+    "val": [],
+    "test": [
+      "../data/URMP/Dataset/02_Sonata_vn_vn/AuSep_1_vn_02_Sonata.wav",
+      "../data/URMP/Dataset/02_Sonata_vn_vn/AuSep_2_vn_02_Sonata.wav",
+      "../data/URMP/Dataset/44_K515_vn_vn_va_va_vc/AuSep_2_vn_44_K515.wav",
+      "../data/URMP/Dataset/44_K515_vn_vn_va_va_vc/AuSep_1_vn_44_K515.wav",
+      "../data/URMP/Dataset/37_Rondeau_fl_vn_va_cl/AuSep_2_vn_37_Rondeau.wav",
+      "../data/URMP/Dataset/36_Rondeau_vn_vn_va_vc/AuSep_2_vn_36_Rondeau.wav",
+      "../data/URMP/Dataset/36_Rondeau_vn_vn_va_vc/AuSep_1_vn_36_Rondeau.wav",
+      "../data/URMP/Dataset/09_Jesus_tpt_vn/AuSep_2_vn_09_Jesus.wav",
+      "../data/URMP/Dataset/35_Rondeau_vn_vn_va_db/AuSep_2_vn_35_Rondeau.wav",
+      "../data/URMP/Dataset/35_Rondeau_vn_vn_va_db/AuSep_1_vn_35_Rondeau.wav"
+    ]
+  },
+  "va": {
+    "train": [
+      "../data/URMP/Dataset/32_Fugue_vn_vn_va_vc/AuSep_3_va_32_Fugue.wav",
+      "../data/URMP/Dataset/27_King_vn_vn_va_sax/AuSep_3_va_27_King.wav",
+      "../data/URMP/Dataset/25_Pirates_vn_vn_va_sax/AuSep_3_va_25_Pirates.wav",
+      "../data/URMP/Dataset/39_Jerusalem_vn_vn_va_sax_db/AuSep_3_va_39_Jerusalem.wav",
+      "../data/URMP/Dataset/38_Jerusalem_vn_vn_va_vc_db/AuSep_3_va_38_Jerusalem.wav",
+      "../data/URMP/Dataset/26_King_vn_vn_va_vc/AuSep_3_va_26_King.wav",
+      "../data/URMP/Dataset/24_Pirates_vn_vn_va_vc/AuSep_3_va_24_Pirates.wav",
+      "../data/URMP/Dataset/13_Hark_vn_vn_va/AuSep_3_va_13_Hark.wav"
+    ],
+    "val": [],
+    "test": [
+      "../data/URMP/Dataset/44_K515_vn_vn_va_va_vc/AuSep_3_va_44_K515.wav",
+      "../data/URMP/Dataset/44_K515_vn_vn_va_va_vc/AuSep_4_va_44_K515.wav",
+      "../data/URMP/Dataset/37_Rondeau_fl_vn_va_cl/AuSep_3_va_37_Rondeau.wav",
+      "../data/URMP/Dataset/36_Rondeau_vn_vn_va_vc/AuSep_3_va_36_Rondeau.wav",
+      "../data/URMP/Dataset/35_Rondeau_vn_vn_va_db/AuSep_3_va_35_Rondeau.wav"
+    ]
+  },
+  "vc": {
+    "train": [
+      "../data/URMP/Dataset/20_Pavane_tpt_vn_vc/AuSep_3_vc_20_Pavane.wav",
+      "../data/URMP/Dataset/11_Maria_ob_vc/AuSep_2_vc_11_Maria.wav",
+      "../data/URMP/Dataset/32_Fugue_vn_vn_va_vc/AuSep_4_vc_32_Fugue.wav",
+      "../data/URMP/Dataset/19_Pavane_cl_vn_vc/AuSep_3_vc_19_Pavane.wav",
+      "../data/URMP/Dataset/38_Jerusalem_vn_vn_va_vc_db/AuSep_4_vc_38_Jerusalem.wav",
+      "../data/URMP/Dataset/26_King_vn_vn_va_vc/AuSep_4_vc_26_King.wav",
+      "../data/URMP/Dataset/24_Pirates_vn_vn_va_vc/AuSep_4_vc_24_Pirates.wav",
+      "../data/URMP/Dataset/01_Jupiter_vn_vc/AuSep_2_vc_01_Jupiter.wav",
+      "../data/URMP/Dataset/12_Spring_vn_vn_vc/AuSep_3_vc_12_Spring.wav"
+    ],
+    "val": [],
+    "test": [
+      "../data/URMP/Dataset/44_K515_vn_vn_va_va_vc/AuSep_5_vc_44_K515.wav",
+      "../data/URMP/Dataset/36_Rondeau_vn_vn_va_vc/AuSep_4_vc_36_Rondeau.wav"
+    ]
+  },
+  "db": {
+    "train": [
+      "../data/URMP/Dataset/39_Jerusalem_vn_vn_va_sax_db/AuSep_5_db_39_Jerusalem.wav",
+      "../data/URMP/Dataset/38_Jerusalem_vn_vn_va_vc_db/AuSep_5_db_38_Jerusalem.wav"
+    ],
+    "val": [],
+    "test": [
+      "../data/URMP/Dataset/35_Rondeau_vn_vn_va_db/AuSep_4_db_35_Rondeau.wav"
+    ]
+  },
+  "fl": {
+    "train": [
+      "../data/URMP/Dataset/14_Waltz_fl_fl_cl/AuSep_2_fl_14_Waltz.wav",
+      "../data/URMP/Dataset/14_Waltz_fl_fl_cl/AuSep_1_fl_14_Waltz.wav",
+      "../data/URMP/Dataset/17_Nocturne_vn_fl_cl/AuSep_2_fl_17_Nocturne.wav",
+      "../data/URMP/Dataset/28_Fugue_fl_ob_cl_bn/AuSep_1_fl_28_Fugue.wav",
+      "../data/URMP/Dataset/08_Spring_fl_vn/AuSep_1_fl_08_Spring.wav",
+      "../data/URMP/Dataset/03_Dance_fl_cl/AuSep_1_fl_03_Dance.wav",
+      "../data/URMP/Dataset/04_Allegro_fl_fl/AuSep_2_fl_04_Allegro.wav",
+      "../data/URMP/Dataset/04_Allegro_fl_fl/AuSep_1_fl_04_Allegro.wav",
+      "../data/URMP/Dataset/29_Fugue_fl_fl_ob_cl/AuSep_2_fl_29_Fugue.wav",
+      "../data/URMP/Dataset/29_Fugue_fl_fl_ob_cl/AuSep_1_fl_29_Fugue.wav",
+      "../data/URMP/Dataset/30_Fugue_fl_fl_ob_sax/AuSep_2_fl_30_Fugue.wav",
+      "../data/URMP/Dataset/30_Fugue_fl_fl_ob_sax/AuSep_1_fl_30_Fugue.wav",
+      "../data/URMP/Dataset/18_Nocturne_vn_fl_tpt/AuSep_2_fl_18_Nocturne.wav"
+    ],
+    "val": [],
+    "test": [
+      "../data/URMP/Dataset/40_Miserere_fl_fl_ob_cl_bn/AuSep_2_fl_40_Miserere.wav",
+      "../data/URMP/Dataset/40_Miserere_fl_fl_ob_cl_bn/AuSep_1_fl_40_Miserere.wav",
+      "../data/URMP/Dataset/37_Rondeau_fl_vn_va_cl/AuSep_1_fl_37_Rondeau.wav",
+      "../data/URMP/Dataset/41_Miserere_fl_fl_ob_sax_bn/AuSep_2_fl_41_Miserere.wav",
+      "../data/URMP/Dataset/41_Miserere_fl_fl_ob_sax_bn/AuSep_1_fl_41_Miserere.wav"
+    ]
+  },
+  "ob": {
+    "train": [
+      "../data/URMP/Dataset/11_Maria_ob_vc/AuSep_1_ob_11_Maria.wav",
+      "../data/URMP/Dataset/28_Fugue_fl_ob_cl_bn/AuSep_2_ob_28_Fugue.wav",
+      "../data/URMP/Dataset/29_Fugue_fl_fl_ob_cl/AuSep_3_ob_29_Fugue.wav",
+      "../data/URMP/Dataset/30_Fugue_fl_fl_ob_sax/AuSep_3_ob_30_Fugue.wav"
+    ],
+    "val": [],
+    "test": [
+      "../data/URMP/Dataset/40_Miserere_fl_fl_ob_cl_bn/AuSep_3_ob_40_Miserere.wav",
+      "../data/URMP/Dataset/41_Miserere_fl_fl_ob_sax_bn/AuSep_3_ob_41_Miserere.wav"
+    ]
+  },
+  "cl": {
+    "train": [
+      "../data/URMP/Dataset/14_Waltz_fl_fl_cl/AuSep_3_cl_14_Waltz.wav",
+      "../data/URMP/Dataset/17_Nocturne_vn_fl_cl/AuSep_3_cl_17_Nocturne.wav",
+      "../data/URMP/Dataset/28_Fugue_fl_ob_cl_bn/AuSep_3_cl_28_Fugue.wav",
+      "../data/URMP/Dataset/21_Rejouissance_cl_tbn_tba/AuSep_1_cl_21_Rejouissance.wav",
+      "../data/URMP/Dataset/03_Dance_fl_cl/AuSep_2_cl_03_Dance.wav",
+      "../data/URMP/Dataset/23_Rejouissance_cl_sax_tba/AuSep_1_cl_23_Rejouissance.wav",
+      "../data/URMP/Dataset/19_Pavane_cl_vn_vc/AuSep_1_cl_19_Pavane.wav",
+      "../data/URMP/Dataset/29_Fugue_fl_fl_ob_cl/AuSep_4_cl_29_Fugue.wav"
+    ],
+    "val": [],
+    "test": [
+      "../data/URMP/Dataset/40_Miserere_fl_fl_ob_cl_bn/AuSep_4_cl_40_Miserere.wav",
+      "../data/URMP/Dataset/37_Rondeau_fl_vn_va_cl/AuSep_4_cl_37_Rondeau.wav"
+    ]
+  },
+  "bn": {
+    "train": [
+      "../data/URMP/Dataset/28_Fugue_fl_ob_cl_bn/AuSep_4_bn_28_Fugue.wav"
+    ],
+    "val": [],
+    "test": [
+      "../data/URMP/Dataset/40_Miserere_fl_fl_ob_cl_bn/AuSep_5_bn_40_Miserere.wav",
+      "../data/URMP/Dataset/41_Miserere_fl_fl_ob_sax_bn/AuSep_5_bn_41_Miserere.wav"
+    ]
+  },
+  "sax": {
+    "train": [
+      "../data/URMP/Dataset/10_March_tpt_sax/AuSep_2_sax_10_March.wav",
+      "../data/URMP/Dataset/06_Entertainer_sax_sax/AuSep_2_sax_06_Entertainer.wav",
+      "../data/URMP/Dataset/06_Entertainer_sax_sax/AuSep_1_sax_06_Entertainer.wav",
+      "../data/URMP/Dataset/22_Rejouissance_sax_tbn_tba/AuSep_1_sax_22_Rejouissance.wav",
+      "../data/URMP/Dataset/27_King_vn_vn_va_sax/AuSep_4_sax_27_King.wav",
+      "../data/URMP/Dataset/25_Pirates_vn_vn_va_sax/AuSep_4_sax_25_Pirates.wav",
+      "../data/URMP/Dataset/23_Rejouissance_cl_sax_tba/AuSep_2_sax_23_Rejouissance.wav",
+      "../data/URMP/Dataset/39_Jerusalem_vn_vn_va_sax_db/AuSep_4_sax_39_Jerusalem.wav",
+      "../data/URMP/Dataset/30_Fugue_fl_fl_ob_sax/AuSep_4_sax_30_Fugue.wav",
+      "../data/URMP/Dataset/16_Surprise_tpt_tpt_sax/AuSep_3_sax_16_Surprise.wav"
+    ],
+    "val": [],
+    "test": [
+      "../data/URMP/Dataset/41_Miserere_fl_fl_ob_sax_bn/AuSep_4_sax_41_Miserere.wav"
+    ]
+  },
+  "tpt": {
+    "train": [
+      "../data/URMP/Dataset/10_March_tpt_sax/AuSep_1_tpt_10_March.wav",
+      "../data/URMP/Dataset/20_Pavane_tpt_vn_vc/AuSep_1_tpt_20_Pavane.wav",
+      "../data/URMP/Dataset/07_GString_tpt_tbn/AuSep_1_tpt_07_GString.wav",
+      "../data/URMP/Dataset/42_Arioso_tpt_tpt_hn_tbn_tba/AuSep_2_tpt_42_Arioso.wav",
+      "../data/URMP/Dataset/42_Arioso_tpt_tpt_hn_tbn_tba/AuSep_1_tpt_42_Arioso.wav",
+      "../data/URMP/Dataset/05_Entertainer_tpt_tpt/AuSep_2_tpt_05_Entertainer.wav",
+      "../data/URMP/Dataset/05_Entertainer_tpt_tpt/AuSep_1_tpt_05_Entertainer.wav",
+      "../data/URMP/Dataset/34_Fugue_tpt_tpt_hn_tbn/AuSep_2_tpt_34_Fugue.wav",
+      "../data/URMP/Dataset/34_Fugue_tpt_tpt_hn_tbn/AuSep_1_tpt_34_Fugue.wav",
+      "../data/URMP/Dataset/18_Nocturne_vn_fl_tpt/AuSep_3_tpt_18_Nocturne.wav",
+      "../data/URMP/Dataset/16_Surprise_tpt_tpt_sax/AuSep_2_tpt_16_Surprise.wav",
+      "../data/URMP/Dataset/16_Surprise_tpt_tpt_sax/AuSep_1_tpt_16_Surprise.wav",
+      "../data/URMP/Dataset/15_Surprise_tpt_tpt_tbn/AuSep_2_tpt_15_Surprise.wav",
+      "../data/URMP/Dataset/15_Surprise_tpt_tpt_tbn/AuSep_1_tpt_15_Surprise.wav",
+      "../data/URMP/Dataset/15_Surprise_tpt_tpt_tbn/AuSep_3_tpt_15_Surprise.wav"
+    ],
+    "val": [],
+    "test": [
+      "../data/URMP/Dataset/31_Slavonic_tpt_tpt_hn_tbn/AuSep_2_tpt_31_Slavonic.wav",
+      "../data/URMP/Dataset/31_Slavonic_tpt_tpt_hn_tbn/AuSep_1_tpt_31_Slavonic.wav",
+      "../data/URMP/Dataset/43_Chorale_tpt_tpt_hn_tbn_tba/AuSep_1_tpt_43_Chorale.wav",
+      "../data/URMP/Dataset/43_Chorale_tpt_tpt_hn_tbn_tba/AuSep_2_tpt_43_Chorale.wav",
+      "../data/URMP/Dataset/33_Elise_tpt_tpt_hn_tbn/AuSep_1_tpt_33_Elise.wav",
+      "../data/URMP/Dataset/33_Elise_tpt_tpt_hn_tbn/AuSep_2_tpt_33_Elise.wav",
+      "../data/URMP/Dataset/09_Jesus_tpt_vn/AuSep_1_tpt_09_Jesus.wav"
+    ]
+  },
+  "hn": {
+    "train": [
+      "../data/URMP/Dataset/42_Arioso_tpt_tpt_hn_tbn_tba/AuSep_3_hn_42_Arioso.wav",
+      "../data/URMP/Dataset/34_Fugue_tpt_tpt_hn_tbn/AuSep_3_hn_34_Fugue.wav"
+    ],
+    "val": [],
+    "test": [
+      "../data/URMP/Dataset/31_Slavonic_tpt_tpt_hn_tbn/AuSep_3_hn_31_Slavonic.wav",
+      "../data/URMP/Dataset/43_Chorale_tpt_tpt_hn_tbn_tba/AuSep_3_hn_43_Chorale.wav",
+      "../data/URMP/Dataset/33_Elise_tpt_tpt_hn_tbn/AuSep_3_hn_33_Elise.wav"
+    ]
+  },
+  "tbn": {
+    "train": [
+      "../data/URMP/Dataset/07_GString_tpt_tbn/AuSep_2_tbn_07_GString.wav",
+      "../data/URMP/Dataset/21_Rejouissance_cl_tbn_tba/AuSep_2_tbn_21_Rejouissance.wav",
+      "../data/URMP/Dataset/22_Rejouissance_sax_tbn_tba/AuSep_2_tbn_22_Rejouissance.wav",
+      "../data/URMP/Dataset/42_Arioso_tpt_tpt_hn_tbn_tba/AuSep_4_tbn_42_Arioso.wav",
+      "../data/URMP/Dataset/34_Fugue_tpt_tpt_hn_tbn/AuSep_4_tbn_34_Fugue.wav"
+    ],
+    "val": [],
+    "test": [
+      "../data/URMP/Dataset/31_Slavonic_tpt_tpt_hn_tbn/AuSep_4_tbn_31_Slavonic.wav",
+      "../data/URMP/Dataset/43_Chorale_tpt_tpt_hn_tbn_tba/AuSep_4_tbn_43_Chorale.wav",
+      "../data/URMP/Dataset/33_Elise_tpt_tpt_hn_tbn/AuSep_4_tbn_33_Elise.wav"
+    ]
+  },
+  "tba": {
+    "train": [
+      "../data/URMP/Dataset/21_Rejouissance_cl_tbn_tba/AuSep_3_tba_21_Rejouissance.wav",
+      "../data/URMP/Dataset/22_Rejouissance_sax_tbn_tba/AuSep_3_tba_22_Rejouissance.wav",
+      "../data/URMP/Dataset/42_Arioso_tpt_tpt_hn_tbn_tba/AuSep_5_tba_42_Arioso.wav",
+      "../data/URMP/Dataset/23_Rejouissance_cl_sax_tba/AuSep_3_tba_23_Rejouissance.wav"
+    ],
+    "val": [],
+    "test": [
+      "../data/URMP/Dataset/43_Chorale_tpt_tpt_hn_tbn_tba/AuSep_5_tba_43_Chorale.wav"
+    ]
+  }
+}
