@@ -8,9 +8,13 @@ results_folder = "results"
 normalised_results_folder = os.path.join(results_folder, "normalised")
 os.makedirs(normalised_results_folder, exist_ok=True)
 
-result_files = [f for f in os.listdir(results_folder) if f.endswith(".wav")]
-original_loudness = {}
+result_files = []
+for root, _, files in os.walk(results_folder):
+    for f in files:
+        if f.endswith(".wav"):
+            result_files.append(os.path.join(root, f))
 
+original_loudness = {}
 for file in result_files:
     file_path = os.path.join(results_folder, file)
     data, rate = pyln.load(file_path)
