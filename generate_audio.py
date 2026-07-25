@@ -78,7 +78,7 @@ def load_split_data(processed_folder):
 
 
 def get_or_process_tensors(test_file, cache_folder, preprocess_config):
-    filename = test_file.split("/")[-1]
+    filename = os.path.splitext(os.path.basename(test_file))[0]
     loudness_tensor_path = os.path.join(cache_folder, f"{filename}_loudness.pt")
     pitch_tensor_path = os.path.join(cache_folder, f"{filename}_pitch.pt")
 
@@ -136,7 +136,8 @@ def generate_interpolated_outputs(model1, model2, instrument1, instrument2, mode
                                    pitch_tensor, loudness_tensor, mean, std, filename,
                                    results_folder, sr, alphas):
     for alpha in alphas:
-        base_name = f"{filename}_interpolated_output_{instrument1}_{instrument2}_{model_type}_alpha_{alpha}"
+        alpha_pct = int(alpha * 100)
+        base_name = f"{filename}_interpolated_output_{instrument1}_{instrument2}_{model_type}_alpha_{alpha_pct}"
 
         with_reverb_path = f"{results_folder}/{base_name}_with_reverb.wav"
         without_reverb_path = f"{results_folder}/{base_name}_without_reverb.wav"
@@ -166,7 +167,8 @@ def generate_interpolated_weights_outputs(state_model_1, state_model_2, instrume
                                            pitch_tensor, loudness_tensor, mean, std, filename,
                                            results_folder, sr, config, alphas, device):
     for alpha in alphas:
-        base_name = f"{filename}_interpolated_weights_{instrument1}_{instrument2}_{model_type}_alpha_{alpha}"
+        alpha_pct = int(alpha * 100)
+        base_name = f"{filename}_interpolated_weights_{instrument1}_{instrument2}_{model_type}_alpha_{alpha_pct}"
 
         with_reverb_path = f"{results_folder}/{base_name}_with_reverb.wav"
         without_reverb_path = f"{results_folder}/{base_name}_without_reverb.wav"
