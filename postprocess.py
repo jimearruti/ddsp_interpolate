@@ -1,6 +1,7 @@
 import os
 import json
 
+import soundfile as sf
 import pyloudnorm as pyln
 
 
@@ -16,8 +17,9 @@ for root, _, files in os.walk(results_folder):
 
 original_loudness = {}
 for file in result_files:
+
     file_path = os.path.join(results_folder, file)
-    data, rate = pyln.load(file_path)
+    data, rate = sf.read(file_path)
 
     meter = pyln.Meter(rate)
     loudness = meter.integrated_loudness(data)
