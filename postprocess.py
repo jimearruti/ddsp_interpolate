@@ -15,21 +15,25 @@ for root, _, files in os.walk(results_folder):
         if f.endswith(".wav"):
             result_files.append(os.path.join(root, f))
 
-original_loudness = {}
-for file in result_files:
 
-    file_path = os.path.join(results_folder, file)
+original_loudness = {}
+for file_path in result_files:
+
     data, rate = sf.read(file_path)
 
     meter = pyln.Meter(rate)
     loudness = meter.integrated_loudness(data)
-    loudness_normalized_audio = pyln.normalize.loudness(data, loudness, -12.0)
+    loudness_normalized_audio = pyln.normalize.loudness(data, loudness, -24.0)
+
+    # Drop the root folder from the path
+    relative_path = os.path.relpath(file_path, results_folder)
+    output_path = os.path.join(normalised_results_folder, relative_path)
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
     # Save the normalised audio
-    output_path = os.path.join(normalised_results_folder, file)
-    pyln.save(output_path, loudness_normalized_audio, rate)
+    sf.write(output_path, loudness_normalized_audio, rate)
 
-    original_loudness[file] = loudness
+    original_loudness[relative_path] = loudness
 
 original_loudness_path = os.path.join(normalised_results_folder, "original_loudness.json")
 with open(original_loudness_path, "w") as f:
