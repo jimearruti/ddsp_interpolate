@@ -2,6 +2,7 @@ import pathlib
 import json
 
 import librosa as li
+import pyloudnorm as pyln
 import numpy as np
 import torch
 import yaml
@@ -49,6 +50,7 @@ def preprocess(
         nfft: Number of FFT bins for loudness extraction.'''
 
     x, _ = li.load(f, sr=sampling_rate)
+    x = pyln.normalize.peak(x, -1.0)
     x = high_pass_filter(x, 80, fs=sampling_rate)
 
     N = (signal_length - len(x) % signal_length) % signal_length
