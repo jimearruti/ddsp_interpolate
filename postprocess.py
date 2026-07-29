@@ -6,8 +6,8 @@ import pyloudnorm as pyln
 import soundfile as sf
 
 
-results_folder = "results_normalised_finetuned_from_15k_for_15k"
-normalised_results_folder = "results_normalised_finetuned_from_15k_for_15k_normalised"
+results_folder = "results_finetuned_from_15k_for_30k"
+normalised_results_folder = "results_finetuned_from_15k_for_30k_normalised"
 os.makedirs(normalised_results_folder, exist_ok=True)
 
 result_files = []
@@ -22,9 +22,8 @@ for file_path in result_files:
 
     data, rate = sf.read(file_path)
     meter = pyln.Meter(rate)
-    stereo_data = np.column_stack((data, data))
-    loudness = meter.integrated_loudness(stereo_data)
-    loudness_normalized_audio = pyln.normalize.loudness(stereo_data, loudness, -24.0)
+    loudness = meter.integrated_loudness(data)
+    loudness_normalized_audio = pyln.normalize.loudness(data, loudness, -24.0)
 
     # Drop the root folder from the path
     relative_path = os.path.relpath(file_path, results_folder)
