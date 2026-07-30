@@ -1,8 +1,10 @@
 import os
 import yaml
 
+import numpy as np
 import librosa
 import soundfile as sf
+import pyloudnorm as pyln
 from effortless_config import Config
 
 
@@ -16,8 +18,48 @@ with open(args.CONFIG, "r") as config_file:
 
 sampling_rate = config["preprocess"]["sampling_rate"]
 
-results_folder = "results_finetuned_30k_normalised"
-output_folder = "cropped_outputs"
+results_folder = "results"
+output_folder = "results_cropped"
+
+# Fade duration in seconds
+fade_duration = 0.02
+
+# Target loudness for the final normalized output
+target_lufs = -24.0
+ 
+ 
+def apply_fade(y, sr, fade_time):
+    """Apply a linear fade-in and fade-out to a mono audio array."""
+    fade_samples = int(fade_time * sr)
+    fade_samples = min(fade_samples, len(y) // 2)  # don't overlap fades on short clips
+ 
+    if fade_samples <= 0:
+        return y
+ 
+    y = y.copy()
+    fade_in = np.linspace(0.0, 1.0, fade_samples)
+    fade_out = np.linspace(1.0, 0.0, fade_samples)
+ 
+    y[:fade_samples] *= fade_in
+    y[-fade_samples:] *= fade_out
+ 
+    return y
+
+
+def to_stereo_normalized(y, sr, target_loudness):
+    """Duplicate a mono signal to stereo and normalize to a target LUFS."""
+    meter = pyln.Meter(sr)
+    loudness = meter.integrated_loudness(y)
+
+    # duplicate mono -> stereo (shape becomes [n_samples, 2])
+    y_stereo = np.stack([y, y], axis=-1)
+ 
+    # pyloudnorm returns -inf for near-silent/empty signals — skip normalization then
+    if np.isfinite(loudness):
+        y_stereo = pyln.normalize.loudness(y_stereo, loudness, target_loudness)
+ 
+    return y_stereo
+
 
 pieces = {
     "AuSep_1_vn_02_Sonata": {
@@ -104,6 +146,8 @@ for piece, info in pieces.items():
         end_sample = int(end_time * sampling_rate)
 
         y_cropped = y[start_sample:end_sample]
+        y_cropped = apply_fade(y_cropped, sampling_rate, fade_duration)
+        y_cropped = to_stereo_normalized(y_cropped, sampling_rate, target_lufs)
         filename = os.path.splitext(os.path.basename(full_path))[0]
         out_path = os.path.join(output_folder, f"{filename}_cropped_{int(start_time * 1000)}_{int(end_time * 1000)}.wav")
         sf.write(out_path, y_cropped, sampling_rate)
@@ -113,6 +157,8 @@ for piece, info in pieces.items():
         start_sample = int(start_time * sampling_rate)
         end_sample = int(end_time * sampling_rate)
         y_cropped = y[start_sample:end_sample]
+        y_cropped = apply_fade(y_cropped, sampling_rate, fade_duration)
+        y_cropped = to_stereo_normalized(y_cropped, sampling_rate, target_lufs)
         filename = os.path.splitext(os.path.basename(original_path))[0]
         out_path = os.path.join(output_folder, f"{filename}_cropped_{int(start_time * 1000)}_{int(end_time * 1000)}.wav")
         sf.write(out_path, y_cropped, sampling_rate)

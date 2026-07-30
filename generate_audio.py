@@ -19,7 +19,7 @@ from interpolation import (
 from preprocess import preprocess
 
 INSTRUMENTS = ["vn", "fl", "tpt"]
-MODEL_TYPES = ["from_scratch", "finetuned"]
+MODEL_TYPES = ["finetuned_from_30k_for_30k", "finetuned_from_30k_for_15k", "finetuned_from_15k_for_15k", "finetuned_from_15k_for_30k"]
 ALPHAS = [0.0, 0.25, 0.5, 0.75, 1.0]
 SWEEP_WINDOW_LENGTH = 8
 
@@ -36,16 +36,25 @@ def load_config(config_path):
 def load_instrument_paths():
     return {
         "vn": {
-            "from_scratch": "runs/from_scratch_after_split_change/20260717_114838/vn/state_30000.pth",
-            "finetuned": "runs/finetune_after_split_change/20260718_133157/vn/state_30000.pth",
+            "from_scratch":"runs/normalised_high_pass_from_scratch/20260728_102000/vn/state_15000.pth",
+            "finetuned_from_30k_for_30k": "runs/normalised_high_pass_filter_finetuned/20260727_230936/vn/state_30000.pth",
+            "finetuned_from_30k_for_15k": "runs/normalised_high_pass_filter_finetuned/20260727_230936/vn/state_15000.pth",
+            "finetuned_from_15k_for_30k": "runs/normalised_high_pass_finetuned_from_15k/20260728_162012/vn/state_30000.pth",
+            "finetuned_from_15k_for_15k": "runs/normalised_high_pass_finetuned_from_15k/20260728_162012/vn/state_15000.pth",
         },
         "fl": {
-            "from_scratch": "runs/from_scratch_after_split_change/20260717_114838/fl/state_30000.pth",
-            "finetuned": "runs/finetune_after_split_change/20260718_133157/fl/state_30000.pth",
+            "from_scratch": "runs/normalised_high_pass_from_scratch/20260728_102000/fl/state_15000.pth",
+            "finetuned_from_30k_for_30k": "runs/normalised_high_pass_filter_finetuned/20260727_230936/fl/state_30000.pth",
+            "finetuned_from_30k_for_15k": "runs/normalised_high_pass_filter_finetuned/20260727_230936/fl/state_15000.pth",
+            "finetuned_from_15k_for_30k": "runs/normalised_high_pass_finetuned_from_15k/20260728_162012/fl/state_30000.pth",
+            "finetuned_from_15k_for_15k": "runs/normalised_high_pass_finetuned_from_15k/20260728_162012/fl/state_15000.pth",
         },
         "tpt": {
-            "from_scratch": "runs/from_scratch_after_split_change/20260717_114838/tpt/state_30000.pth",
-            "finetuned": "runs/finetune_after_split_change/20260718_133157/tpt/state_30000.pth",
+            "from_scratch": "runs/normalised_high_pass_from_scratch/20260728_102000/tpt/state_15000.pth",
+            "finetuned_from_30k_for_30k": "runs/normalised_high_pass_filter_finetuned/20260727_230936/tpt/state_30000.pth",
+            "finetuned_from_30k_for_15k": "runs/normalised_high_pass_filter_finetuned/20260727_230936/tpt/state_15000.pth",
+            "finetuned_from_15k_for_30k": "runs/normalised_high_pass_finetuned_from_15k/20260728_162012/tpt/state_30000.pth",
+            "finetuned_from_15k_for_15k": "runs/normalised_high_pass_finetuned_from_15k/20260728_162012/tpt/state_15000.pth",
         },
     }
 
@@ -308,10 +317,10 @@ def process_pair(instrument1, instrument2, instrument_paths, split_data, mean, s
                     pitch_tensor, loudness_norm, filename, track_results_folder, sr
                 )
 
-                generate_interpolated_outputs(
-                    model1, model2, instrument1, instrument2, model_type,
-                    pitch_tensor, loudness_tensor, mean, std, filename, track_results_folder, sr, alphas
-                )
+                # generate_interpolated_outputs(
+                #     model1, model2, instrument1, instrument2, model_type,
+                #     pitch_tensor, loudness_tensor, mean, std, filename, track_results_folder, sr, alphas
+                # )
 
                 generate_interpolated_weights_outputs(
                     state_model_1, state_model_2, instrument1, instrument2, model_type,
@@ -319,15 +328,15 @@ def process_pair(instrument1, instrument2, instrument_paths, split_data, mean, s
                     device
                 )
 
-                generate_output_sweep(
-                    model1, model2, instrument1, instrument2, model_type,
-                    pitch_tensor, loudness_tensor, mean, std, filename, track_results_folder, sr
-                )
+                # generate_output_sweep(
+                #     model1, model2, instrument1, instrument2, model_type,
+                #     pitch_tensor, loudness_tensor, mean, std, filename, track_results_folder, sr
+                # )
 
-                generate_weights_sweep(
-                    state_model_1, state_model_2, instrument1, instrument2, model_type,
-                    pitch_tensor, loudness_tensor, mean, std, filename, track_results_folder, sr, config, device
-                )
+                # generate_weights_sweep(
+                #     state_model_1, state_model_2, instrument1, instrument2, model_type,
+                #     pitch_tensor, loudness_tensor, mean, std, filename, track_results_folder, sr, config, device
+                # )
 
                 del model1, model2
                 if device.type == "cuda":

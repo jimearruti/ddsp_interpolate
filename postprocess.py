@@ -6,8 +6,8 @@ import pyloudnorm as pyln
 import soundfile as sf
 
 
-results_folder = "results_finetuned_from_15k_for_30k"
-normalised_results_folder = "results_finetuned_from_15k_for_30k_normalised"
+results_folder = "results"
+normalised_results_folder = f"{results_folder}_normalised"
 os.makedirs(normalised_results_folder, exist_ok=True)
 
 result_files = []
