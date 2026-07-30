@@ -12,15 +12,20 @@ from ddsp.utils import high_pass_filter
 
 class args(Config):
     CONFIG = "config.yaml"
+    GENERATE_CONFIG = "generate_config.yaml"
 
 args.parse_args()
 
 with open(args.CONFIG, "r") as config_file:
     config = yaml.safe_load(config_file)
 
-sampling_rate = config["preprocess"]["sampling_rate"]
+with open(args.GENERATE_CONFIG, "r") as config_file:
+    generate_config = yaml.safe_load(config_file)
 
-results_folder = "../data/URMP/Dataset"
+sampling_rate = config["preprocess"]["sampling_rate"]
+target_lufs = generate_config["postprocess"]["target_lufs"]
+
+results_folder = config["data"]["data_location"]
 normalised_results_folder = os.path.join(results_folder, "normalised")
 os.makedirs(normalised_results_folder, exist_ok=True)
 
@@ -39,7 +44,7 @@ for file_path in result_files:
     x = pyln.normalize.peak(x, -1.0)
     x = high_pass_filter(x, 80, fs=sampling_rate)
     loudness = meter.integrated_loudness(x)
-    loudness_normalized_audio = pyln.normalize.loudness(x, loudness, -24.0)
+    loudness_normalized_audio = pyln.normalize.loudness(x, loudness, target_lufs)
 
     # Drop the root folder from the path
     relative_path = os.path.relpath(file_path, results_folder)

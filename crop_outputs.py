@@ -10,22 +10,27 @@ from effortless_config import Config
 
 class args(Config):
     CONFIG = "config.yaml"
+    GENERATE_CONFIG = "generate_config.yaml"
 
 args.parse_args()
 
 with open(args.CONFIG, "r") as config_file:
     config = yaml.safe_load(config_file)
 
+with open(args.GENERATE_CONFIG, "r") as config_file:
+    generate_config = yaml.safe_load(config_file)
+
 sampling_rate = config["preprocess"]["sampling_rate"]
 
-results_folder = "results"
-output_folder = "results_cropped"
+crop_config = generate_config["postprocess"]["crop"]
+results_folder = crop_config["results_dir"]
+output_folder = crop_config["output_dir"]
 
 # Fade duration in seconds
-fade_duration = 0.02
+fade_duration = crop_config["fade_duration"]
 
 # Target loudness for the final normalized output
-target_lufs = -24.0
+target_lufs = generate_config["postprocess"]["target_lufs"]
  
  
 def apply_fade(y, sr, fade_time):
@@ -61,73 +66,7 @@ def to_stereo_normalized(y, sr, target_loudness):
     return y_stereo
 
 
-pieces = {
-    "AuSep_1_vn_02_Sonata": {
-        "original_path": "../data/URMP/normalised/02_Sonata_vn_vn/AuSep_1_vn_02_Sonata.wav",
-        "start_time": 4.330, 
-        "end_time": 12.569
-    },
-    "AuSep_2_vn_02_Sonata": {
-        "original_path": "../data/URMP/normalised/02_Sonata_vn_vn/AuSep_2_vn_02_Sonata.wav",
-        "start_time": 4.128, 
-        "end_time": 12.767
-    },
-    "AuSep_1_vn_35_Rondeau": {
-        "original_path": "../data/URMP/normalised/35_Rondeau_vn_vn_va_db/AuSep_1_vn_35_Rondeau.wav",
-        "start_time": 11.801, 
-        "end_time": 18.635
-    },
-    "AuSep_2_vn_35_Rondeau": {
-        "original_path": "../data/URMP/normalised/35_Rondeau_vn_vn_va_db/AuSep_2_vn_35_Rondeau.wav",
-        "start_time": 3.809, 
-        "end_time": 14.334
-    },
-    "AuSep_2_vn_09_Jesus": {
-        "original_path": "../data/URMP/normalised/09_Jesus_tpt_vn/AuSep_2_vn_09_Jesus.wav",
-        "start_time": 5.000, 
-        "end_time": 12.819
-    },
-    "AuSep_1_fl_40_Miserere": {
-        "original_path": "../data/URMP/normalised/40_Miserere_fl_fl_ob_cl_bn/AuSep_1_fl_40_Miserere.wav",
-        "start_time": 8.109,
-        "end_time": 15.854,
-    },
-    "AuSep_2_fl_40_Miserere": {
-        "original_path": "../data/URMP/normalised/40_Miserere_fl_fl_ob_cl_bn/AuSep_2_fl_40_Miserere.wav",
-        "start_time": 2.065,
-        "end_time": 9.446,
-    },
-    "AuSep_1_fl_37_Rondeau": {
-        "original_path": "../data/URMP/normalised/37_Rondeau_fl_vn_va_cl/AuSep_1_fl_37_Rondeau.wav",
-        "start_time": 50.854,
-        "end_time": 55.911,
-    },
-    "AuSep_1_tpt_31_Slavonic": {
-        "original_path": "../data/URMP/normalised/31_Slavonic_tpt_tpt_hn_tbn/AuSep_1_tpt_31_Slavonic.wav",
-        "start_time": 2.065,
-        "end_time": 9.446,
-    },
-    "AuSep_2_tpt_31_Slavonic": {
-        "original_path": "../data/URMP/normalised/31_Slavonic_tpt_tpt_hn_tbn/AuSep_2_tpt_31_Slavonic.wav",
-        "start_time": 7.845,
-        "end_time": 13.394,
-    },
-    "AuSep_1_tpt_33_Elise": {
-        "original_path": "../data/URMP/normalised/33_Elise_tpt_tpt_hn_tbn/AuSep_1_tpt_33_Elise.wav",
-        "start_time": 13.667,
-        "end_time": 19.335,
-    },
-    "AuSep_2_tpt_33_Elise": {
-        "original_path": "../data/URMP/normalised/33_Elise_tpt_tpt_hn_tbn/AuSep_2_tpt_33_Elise.wav",
-        "start_time": 4.115,
-        "end_time": 10.752,
-    },
-    "AuSep_1_tpt_43_Chorale": {
-        "original_path": "../data/URMP/normalised/43_Chorale_tpt_tpt_hn_tbn_tba/AuSep_1_tpt_43_Chorale.wav",
-        "start_time": 24.798,
-        "end_time": 30.317,
-    },
-}
+pieces = crop_config["pieces"]
 
 for piece, info in pieces.items():
     start_time = info["start_time"]

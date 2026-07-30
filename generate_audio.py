@@ -18,45 +18,14 @@ from interpolation import (
 
 from preprocess import preprocess
 
-INSTRUMENTS = ["vn", "fl", "tpt"]
-MODEL_TYPES = ["finetuned_from_30k_for_30k", "finetuned_from_30k_for_15k", "finetuned_from_15k_for_15k", "finetuned_from_15k_for_30k"]
-ALPHAS = [0.0, 0.25, 0.5, 0.75, 1.0]
-SWEEP_WINDOW_LENGTH = 8
-
-
 class args(Config):
     CONFIG = "config.yaml"
+    GENERATE_CONFIG = "generate_config.yaml"
 
 
 def load_config(config_path):
     with open(config_path, "r") as config_file:
         return yaml.safe_load(config_file)
-
-
-def load_instrument_paths():
-    return {
-        "vn": {
-            "from_scratch":"runs/normalised_high_pass_from_scratch/20260728_102000/vn/state_15000.pth",
-            "finetuned_from_30k_for_30k": "runs/normalised_high_pass_filter_finetuned/20260727_230936/vn/state_30000.pth",
-            "finetuned_from_30k_for_15k": "runs/normalised_high_pass_filter_finetuned/20260727_230936/vn/state_15000.pth",
-            "finetuned_from_15k_for_30k": "runs/normalised_high_pass_finetuned_from_15k/20260728_162012/vn/state_30000.pth",
-            "finetuned_from_15k_for_15k": "runs/normalised_high_pass_finetuned_from_15k/20260728_162012/vn/state_15000.pth",
-        },
-        "fl": {
-            "from_scratch": "runs/normalised_high_pass_from_scratch/20260728_102000/fl/state_15000.pth",
-            "finetuned_from_30k_for_30k": "runs/normalised_high_pass_filter_finetuned/20260727_230936/fl/state_30000.pth",
-            "finetuned_from_30k_for_15k": "runs/normalised_high_pass_filter_finetuned/20260727_230936/fl/state_15000.pth",
-            "finetuned_from_15k_for_30k": "runs/normalised_high_pass_finetuned_from_15k/20260728_162012/fl/state_30000.pth",
-            "finetuned_from_15k_for_15k": "runs/normalised_high_pass_finetuned_from_15k/20260728_162012/fl/state_15000.pth",
-        },
-        "tpt": {
-            "from_scratch": "runs/normalised_high_pass_from_scratch/20260728_102000/tpt/state_15000.pth",
-            "finetuned_from_30k_for_30k": "runs/normalised_high_pass_filter_finetuned/20260727_230936/tpt/state_30000.pth",
-            "finetuned_from_30k_for_15k": "runs/normalised_high_pass_filter_finetuned/20260727_230936/tpt/state_15000.pth",
-            "finetuned_from_15k_for_30k": "runs/normalised_high_pass_finetuned_from_15k/20260728_162012/tpt/state_30000.pth",
-            "finetuned_from_15k_for_15k": "runs/normalised_high_pass_finetuned_from_15k/20260728_162012/tpt/state_15000.pth",
-        },
-    }
 
 
 def load_loudness_stats(instrument_paths, processed_folder, instruments):
@@ -317,10 +286,10 @@ def process_pair(instrument1, instrument2, instrument_paths, split_data, mean, s
                     pitch_tensor, loudness_norm, filename, track_results_folder, sr
                 )
 
-                # generate_interpolated_outputs(
-                #     model1, model2, instrument1, instrument2, model_type,
-                #     pitch_tensor, loudness_tensor, mean, std, filename, track_results_folder, sr, alphas
-                # )
+                generate_interpolated_outputs(
+                    model1, model2, instrument1, instrument2, model_type,
+                    pitch_tensor, loudness_tensor, mean, std, filename, track_results_folder, sr, alphas
+                )
 
                 generate_interpolated_weights_outputs(
                     state_model_1, state_model_2, instrument1, instrument2, model_type,
@@ -328,15 +297,15 @@ def process_pair(instrument1, instrument2, instrument_paths, split_data, mean, s
                     device
                 )
 
-                # generate_output_sweep(
-                #     model1, model2, instrument1, instrument2, model_type,
-                #     pitch_tensor, loudness_tensor, mean, std, filename, track_results_folder, sr
-                # )
+                generate_output_sweep(
+                    model1, model2, instrument1, instrument2, model_type,
+                    pitch_tensor, loudness_tensor, mean, std, filename, track_results_folder, sr
+                )
 
-                # generate_weights_sweep(
-                #     state_model_1, state_model_2, instrument1, instrument2, model_type,
-                #     pitch_tensor, loudness_tensor, mean, std, filename, track_results_folder, sr, config, device
-                # )
+                generate_weights_sweep(
+                    state_model_1, state_model_2, instrument1, instrument2, model_type,
+                    pitch_tensor, loudness_tensor, mean, std, filename, track_results_folder, sr, config, device
+                )
 
                 del model1, model2
                 if device.type == "cuda":
@@ -346,27 +315,32 @@ def process_pair(instrument1, instrument2, instrument_paths, split_data, mean, s
 def main():
     args.parse_args()
     config = load_config(args.CONFIG)
+    generate_config = load_config(args.GENERATE_CONFIG)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"using device: {device}")
 
     sr = config["preprocess"]["sampling_rate"]
     processed_folder = config["preprocess"]["out_dir"]
-    results_folder = "results"
+    results_folder = generate_config["generate"]["results_dir"]
     files_processed_folder = f"{processed_folder}/per_track"
 
     os.makedirs(results_folder, exist_ok=True)
     os.makedirs(files_processed_folder, exist_ok=True)
 
-    instrument_paths = load_instrument_paths()
-    mean, std = load_loudness_stats(instrument_paths, processed_folder, INSTRUMENTS)
+    instrument_paths = generate_config["instrument_paths"]
+    instruments = generate_config["generate"]["instruments"]
+    model_types = generate_config["generate"]["model_types"]
+    alphas = generate_config["generate"]["alphas"]
+
+    mean, std = load_loudness_stats(instrument_paths, processed_folder, instruments)
     split_data = load_split_data(processed_folder)
 
-    for instrument1, instrument2 in permutations(INSTRUMENTS, 2):
+    for instrument1, instrument2 in permutations(instruments, 2):
         process_pair(
             instrument1, instrument2, instrument_paths, split_data, mean, std,
             config["preprocess"], files_processed_folder, results_folder, sr, config,
-            MODEL_TYPES, ALPHAS, device
+            model_types, alphas, device
         )
 
 

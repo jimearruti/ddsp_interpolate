@@ -1,12 +1,22 @@
 import os
 import json
 
-import numpy as np
 import pyloudnorm as pyln
 import soundfile as sf
+import yaml
+from effortless_config import Config
 
 
-results_folder = "results"
+class args(Config):
+    GENERATE_CONFIG = "generate_config.yaml"
+
+args.parse_args()
+
+with open(args.GENERATE_CONFIG, "r") as config_file:
+    generate_config = yaml.safe_load(config_file)
+
+target_lufs = generate_config["postprocess"]["target_lufs"]
+results_folder = generate_config["postprocess"]["normalize_results"]["results_dir"]
 normalised_results_folder = f"{results_folder}_normalised"
 os.makedirs(normalised_results_folder, exist_ok=True)
 
@@ -23,7 +33,7 @@ for file_path in result_files:
     data, rate = sf.read(file_path)
     meter = pyln.Meter(rate)
     loudness = meter.integrated_loudness(data)
-    loudness_normalized_audio = pyln.normalize.loudness(data, loudness, -24.0)
+    loudness_normalized_audio = pyln.normalize.loudness(data, loudness, target_lufs)
 
     # Drop the root folder from the path
     relative_path = os.path.relpath(file_path, results_folder)
