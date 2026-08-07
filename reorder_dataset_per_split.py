@@ -18,16 +18,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("split_json", type=Path, help="Path to split_files.json")
     parser.add_argument("dest_root", type=Path, help="Destination root folder")
-    parser.add_argument(
-        "--source-root",
-        type=Path,
-        default=None,
-        help="Base directory the paths in the JSON are relative to "
-        "(default: the split_json's own directory)",
-    )
     args = parser.parse_args()
 
-    source_root = args.source_root or args.split_json.parent
     with open(args.split_json) as f:
         splits = json.load(f)
 
@@ -39,7 +31,7 @@ def main():
             out_dir = args.dest_root / split_name
             out_dir.mkdir(parents=True, exist_ok=True)
             for rel_path in paths:
-                src = (source_root / rel_path).resolve()
+                src = Path(rel_path)
                 if not src.exists():
                     print(f"Warning: missing file {src}")
                     continue
