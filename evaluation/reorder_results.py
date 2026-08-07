@@ -25,8 +25,6 @@ PATTERNS = [
         rf"interpolated_(?:output|weights)_(?P<i1>[a-z]+)_(?P<i2>[a-z]+)_"
         rf"(?P<model>{MODEL})_alpha_(?P<alpha>\d+)_(?P<reverb>with|without)_reverb\.wav$"
     ),
-    # pair models.json
-    re.compile(rf"_(?P<i1>[a-z]+)_(?P<i2>[a-z]+)_(?P<model>{MODEL})_models\.json$"),
     # single-instrument synthesis wav
     re.compile(rf"_(?P<inst>[a-z]+)_(?P<model>{MODEL})\.wav$"),
 ]
@@ -65,7 +63,7 @@ def main():
         if not piece_dir.is_dir():
             continue
         for f in sorted(piece_dir.iterdir()):
-            if not f.is_file():
+            if not f.is_file() or f.suffix != ".wav":
                 continue
             result = classify(f.name)
             if result is None:
