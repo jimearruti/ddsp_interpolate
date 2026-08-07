@@ -38,8 +38,9 @@ This will process each instrument separately.
 You can then train a model for each instrument by calling 
 
 ```bash
-python -m train.train --name mytraining (--steps 30000 --instrument vn)
+python -m train.train --name mytraining_from_scratch (--steps 30000 --instrument vn)
 ```
+If no instrument is specified, a model for each instrument defined in `config.yaml` will be trained.
 
 ### Finetuning from a base model
 
@@ -48,17 +49,21 @@ python -m train.train --name mytraining (--steps 30000 --instrument vn)
 To obtain a base model, you need to run
 
 ```bash
-python -m train.train_base_model
+python -m train.train_base_model --name mytraining_base_model
 ```
 
-This will create a base model using data from several instruments. Audio quality is not expected to be good, since it will serve as a starting point for finetuning.
+This will create a base model using data from all instruments defined in `config.yaml`. Audio quality is not expected to be good, since it mixes recordings of all the instruments and will serve as a starting point for finetuning. 
+
+The trained base models are saved in `runs/<training_name>/<timestamp_with_date_and_time_info>/base_model/state_<checkpoint_number>.pth`
 
 #### Finetuning
-After the base model is obtained, a normal train cycle as described above (in training from scratch) should be run, adding `--base_model_path /path/to/base/model` to the call.
+After the base model is obtained, a normal train cycle as described above (in training from scratch) should be run, adding `--base_model_path /path/to/base/model` to the call. 
 
 ```bash
-python -m train.train --name mytraining --base_model_path /path/to/base/model (--steps 30000 --instrument vn)
+python -m train.train --name mytraining_finetuning --base_model_path /path/to/base/model (--steps 30000 --instrument vn)
 ```
+
+
 ## Inference block
 TODO
 ## Evaluation block
