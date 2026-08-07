@@ -7,7 +7,9 @@ components (piece folder + filename) are used, joined onto source_root, so
 you can point source_root at any directory that mirrors the
 piece/recording.wav layout. This script flattens all train files into
 <dest>/train/ and all test files into <dest>/test/, prefixing each filename
-with its instrument code to avoid collisions.
+with its instrument code to avoid collisions. The 'val' split, if present,
+is skipped. Train files are additionally copied into per-instrument
+folders <dest>/train_<instrument>/, alongside (not inside) train/.
 
 Usage:
     python reorder_dataset_per_split.py <split_json> <source_root> <dest_root>
@@ -28,13 +30,19 @@ def main():
     with open(args.split_json) as f:
         splits = json.load(f)
 
-    counts = {"train": 0, "val": 0, "test": 0}
+    counts = {"train": 0, "test": 0}
     for instrument, sets in splits.items():
         for split_name, paths in sets.items():
-            if split_name not in ("train", "val", "test"):
+            if split_name not in ("train", "test"):
                 continue
             out_dir = args.dest_root / split_name
             out_dir.mkdir(parents=True, exist_ok=True)
+
+            instrument_dir = None
+            if split_name == "train":
+                instrument_dir = args.dest_root / f"train_{instrument}"
+                instrument_dir.mkdir(parents=True, exist_ok=True)
+
             for rel_path in paths:
                 piece_and_file = Path(rel_path).parts[-2:]
                 src = args.source_root.joinpath(*piece_and_file)
@@ -43,6 +51,8 @@ def main():
                     continue
                 dst = out_dir / f"{instrument}_{src.name}"
                 shutil.copy2(src, dst)
+                if instrument_dir is not None:
+                    shutil.copy2(src, instrument_dir / src.name)
                 counts[split_name] += 1
 
     print(f"Done. Copied: {counts}")
