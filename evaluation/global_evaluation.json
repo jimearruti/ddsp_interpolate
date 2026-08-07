@@ -6,6 +6,6 @@
         "./results_reordered/finetuned_from_15k_for_30k/flattened",
         "./results_reordered/finetuned_from_15k_for_15k/flattened",
         "./results_reordered/from_scratch/flattened",
-        "../data/URMP/per_split/test"
+        "../data/URMP/rearranged/test"
     ]
 }

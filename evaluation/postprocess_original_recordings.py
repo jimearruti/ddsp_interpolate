@@ -44,7 +44,6 @@ for file_path in result_files:
     x = pyln.normalize.peak(x, -1.0)
     x = high_pass_filter(x, 80, fs=sampling_rate)
     loudness = meter.integrated_loudness(x)
-    loudness_normalized_audio = pyln.normalize.loudness(x, loudness, target_lufs)
 
     # Drop the root folder from the path
     relative_path = os.path.relpath(file_path, results_folder)
@@ -52,7 +51,7 @@ for file_path in result_files:
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
     # Save the normalised audio
-    sf.write(output_path, loudness_normalized_audio, sampling_rate)
+    sf.write(output_path, x, sampling_rate)
 
     original_loudness[relative_path] = loudness
 
