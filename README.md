@@ -22,6 +22,7 @@ python -m train.split_dataset
 
 The split is done on a **piece** level, to ensure no leakage takes place. There's a check on a file level after the split is done to ensure the ratios are approximately met for **violin, flute and trumpet**.
 
+The split used for our experiments can be seen in `preprocessed/split_files.json`.
 
 ### Data preprocessing
 
