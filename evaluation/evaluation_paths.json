@@ -1,7 +1,7 @@
 {
     "background_path": "../data/URMP/per_split/train",
     "resynth_paths": [
-        "./results",
+        "./results_reordered",
         "../data/URMP/per_split/test"
     ]
 }
