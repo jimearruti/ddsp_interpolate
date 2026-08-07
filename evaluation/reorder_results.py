@@ -3,9 +3,10 @@
 Original layout: results/<piece_folder>/<various files>.wav|.json
 New layout:       results_reordered/<model>/<instrument_or_pair>/[alpha_<value>/]<original filename>
 
-Also creates a "flattened" subfolder inside the destination folder
-(results_reordered/flattened) containing all files directly, with the source
-piece folder name prefixed to avoid filename collisions.
+Also creates a "flattened" subfolder inside each model's folder
+(results_reordered/<model>/flattened) containing all of that model's files
+directly, with the source piece folder name prefixed to avoid filename
+collisions.
 
 Usage:
     python reorder_results.py <src_results_dir> <dst_results_dir>
@@ -57,9 +58,6 @@ def main():
     ap.add_argument("--move", action="store_true", help="move instead of copy")
     args = ap.parse_args()
 
-    flat_dst = args.dst / "flattened"
-    flat_dst.mkdir(parents=True, exist_ok=True)
-
     unmatched = []
     count = 0
 
@@ -81,6 +79,8 @@ def main():
             out_dir.mkdir(parents=True, exist_ok=True)
             out_path = out_dir / f.name
 
+            flat_dst = args.dst / model / "flattened"
+            flat_dst.mkdir(parents=True, exist_ok=True)
             flat_path = flat_dst / f"{piece_dir.name}__{f.name}"
 
             if args.move:
@@ -92,7 +92,7 @@ def main():
             count += 1
 
     print(f"Processed {count} files.")
-    print(f"Flattened copy written to {flat_dst}")
+    print(f"Flattened copies written to {args.dst}/<model>/flattened")
     if unmatched:
         print(f"WARNING: {len(unmatched)} files did not match any pattern:")
         for f in unmatched:
