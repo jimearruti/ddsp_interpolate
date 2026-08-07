@@ -9,7 +9,7 @@ import yaml
 from effortless_config import Config
 
 from ddsp.core import mean_std_loudness
-from train_base_model import make_dataloaders
+from .train_base_model import make_dataloaders
 
 
 def get_duration(f):

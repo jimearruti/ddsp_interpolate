@@ -10,8 +10,8 @@ from effortless_config import Config
 from torch.utils.data import ConcatDataset
 
 from ddsp.model import DDSP
-from preprocess import DatasetMultiInstrument
-from train_utils import train
+from .preprocess import DatasetMultiInstrument
+from .train_utils import train
 
 
 # training config

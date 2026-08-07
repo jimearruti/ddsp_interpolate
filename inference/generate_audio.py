@@ -7,7 +7,7 @@ import torchaudio
 import yaml
 from effortless_config import Config
 
-from interpolation import (
+from .interpolation import (
     apply_interpolated_reverb,
     build_model_from_state_dict,
     get_interpolated_output,
@@ -16,7 +16,7 @@ from interpolation import (
     get_model_with_interpolated_weights,
 )
 
-from preprocess import preprocess
+from train.preprocess import preprocess
 
 class args(Config):
     CONFIG = "config.yaml"

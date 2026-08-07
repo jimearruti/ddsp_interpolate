@@ -9,8 +9,8 @@ from dotenv import load_dotenv
 from effortless_config import Config
 
 from ddsp.model import DDSP
-from preprocess import DatasetMultiInstrument
-from train_utils import load_split_data, train
+from .preprocess import DatasetMultiInstrument
+from .train_utils import load_split_data, train
 
 # training config
 class args(Config):
