@@ -1,12 +1,16 @@
 """Copy dataset files into train/ and test/ folders according to a split JSON.
 
 The split JSON maps instrument -> {"train": [...], "val": [...], "test": [...]}
-with each entry a relative path to a .wav file. This script flattens all
-train files into <dest>/train/ and all test files into <dest>/test/,
-prefixing each filename with its instrument code to avoid collisions.
+with each entry a path like "../data/URMP/Dataset/<piece>/<recording>.wav"
+relative to wherever the JSON was generated. Only the last two path
+components (piece folder + filename) are used, joined onto source_root, so
+you can point source_root at any directory that mirrors the
+piece/recording.wav layout. This script flattens all train files into
+<dest>/train/ and all test files into <dest>/test/, prefixing each filename
+with its instrument code to avoid collisions.
 
 Usage:
-    python split_copy.py <split_json> <dest_root> [--source-root DIR]
+    python reorder_dataset_per_split.py <split_json> <source_root> <dest_root>
 """
 import argparse
 import json
@@ -17,6 +21,7 @@ from pathlib import Path
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("split_json", type=Path, help="Path to split_files.json")
+    parser.add_argument("source_root", type=Path, help="Source root folder")
     parser.add_argument("dest_root", type=Path, help="Destination root folder")
     args = parser.parse_args()
 
@@ -31,7 +36,8 @@ def main():
             out_dir = args.dest_root / split_name
             out_dir.mkdir(parents=True, exist_ok=True)
             for rel_path in paths:
-                src = Path(rel_path)
+                piece_and_file = Path(rel_path).parts[-2:]
+                src = args.source_root.joinpath(*piece_and_file)
                 if not src.exists():
                     print(f"Warning: missing file {src}")
                     continue
