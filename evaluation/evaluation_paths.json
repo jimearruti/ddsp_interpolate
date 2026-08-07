@@ -1,12 +1,7 @@
 {
-    "background_path": "./dataset/drumset/train/",
+    "background_path": "../data/URMP/per_split/train",
     "resynth_paths": [
-        "./experiments/reconstructions/BRAVE-drumset/drumset/",
-        "./experiments/reconstructions/c128_r05_p40-drumset/drumset",
-        "./experiments/reconstructions/c128_r10_p40-drumset/drumset",
-        "./experiments/reconstructions/c128_r10-drumset/drumset",
-        "./experiments/reconstructions/c2048_r10-drumset/drumset",
-        "./experiments/reconstructions/RAVE-drumset/drumset",
-        "./experiments/test_audios/drumset"
+        "./results",
+        "../data/URMP/per_split/test"
     ]
 }
