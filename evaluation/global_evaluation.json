@@ -1,0 +1,11 @@
+{
+    "background_path": "../data/URMP/per_split/train",
+    "resynth_paths": [
+        "./results_reordered/finetuned_for_30k_from_30k/flattened",
+        "./results_reordered/finetuned_for_30k_from_15k/flattened",
+        "./results_reordered/finetuned_for_15k_from_30k/flattened",
+        "./results_reordered/finetuned_for_15k_from_15k/flattened",
+        "./results_reordered/from_scratch/flattened",
+        "../data/URMP/per_split/test"
+    ]
+}
