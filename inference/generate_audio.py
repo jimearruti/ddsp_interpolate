@@ -1,10 +1,7 @@
-import json
 import os
 from itertools import permutations
 
 import torch
-import torchaudio
-import yaml
 from effortless_config import Config
 
 from .interpolation import (
@@ -15,90 +12,38 @@ from .interpolation import (
     get_interpolated_weights_sweep,
     get_model_with_interpolated_weights,
 )
+from .io_utils import (
+    get_or_process_tensors,
+    load_config,
+    load_loudness_stats,
+    load_split_data,
+    save_audio_if_missing,
+    save_models_used,
+)
+from .loudness import standardize_loudness, standardize_loudness_interpolated
 
-from train.preprocess import preprocess
 
 class args(Config):
     CONFIG = "config.yaml"
     GENERATE_CONFIG = "inference/generate_config.yaml"
 
 
-def load_config(config_path):
-    with open(config_path, "r") as config_file:
-        return yaml.safe_load(config_file)
-
-
-def load_loudness_stats(instrument_paths, processed_folder, instruments):
-    mean = {}
-    std = {}
-    for instrument in instruments:
-        instrument_config_path = os.path.join(
-            os.path.dirname(instrument_paths[instrument]["from_scratch"]), "config.yaml"
-        )
-        with open(instrument_config_path, "r") as config_file_training:
-            instrument_config = yaml.safe_load(config_file_training)
-        mean[instrument] = instrument_config["data"]["mean_loudness"]
-        std[instrument] = instrument_config["data"]["std_loudness"]
-
-    global_stats_path = os.path.join(processed_folder, "mean_std_loudness.yml")
-    with open(global_stats_path, "r") as f:
-        global_stats = yaml.safe_load(f)
-        mean["global"] = global_stats["mean_loudness"]
-        std["global"] = global_stats["std_loudness"]
-
-    return mean, std
-
-
-def load_split_data(processed_folder):
-    split_files_path = os.path.join(processed_folder, "split_files.json")
-    with open(split_files_path, "r") as f:
-        return json.load(f)
-
-
-def get_or_process_tensors(test_file, cache_folder, preprocess_config):
-    filename = os.path.splitext(os.path.basename(test_file))[0]
-    loudness_tensor_path = os.path.join(cache_folder, f"{filename}_loudness.pt")
-    pitch_tensor_path = os.path.join(cache_folder, f"{filename}_pitch.pt")
-
-    if os.path.exists(loudness_tensor_path) and os.path.exists(pitch_tensor_path):
-        print(f"loading {filename} tensors")
-        loudness_tensor = torch.load(loudness_tensor_path)
-        pitch_tensor = torch.load(pitch_tensor_path)
-    else:
-        print(f"processing {filename}")
-        _, p, l = preprocess(test_file, **preprocess_config)
-        pitch_tensor = torch.from_numpy(p).float().view(1, -1, 1)
-        loudness_tensor = (l if isinstance(l, torch.Tensor) else torch.from_numpy(l)).float().view(1, -1, 1)
-        torch.save(loudness_tensor, loudness_tensor_path)
-        torch.save(pitch_tensor, pitch_tensor_path)
-
-    return filename, pitch_tensor, loudness_tensor
-
-
-def normalize_loudness(loudness_tensor, mean, std, keys):
-    return {key: (loudness_tensor - mean[key]) / std[key] for key in keys}
-
-
-def normalize_loudness_interpolated(loudness_tensor, mean, std, instrument1, instrument2, alpha):
-    interp_mean = (1 - alpha) * mean[instrument1] + alpha * mean[instrument2]
-    interp_std = (1 - alpha) * std[instrument1] + alpha * std[instrument2]
-    return (loudness_tensor - interp_mean) / interp_std
-
-
-def save_audio_if_missing(path_out, signal, sr):
-    if os.path.exists(path_out):
-        return
-    torchaudio.save(path_out, signal.reshape(1, -1).detach().cpu(), sample_rate=sr)
-
-
-def save_models_used(path1, path2, instrument1, instrument2, model_type, filename, results_folder):
-    path_out = os.path.join(results_folder, f"{filename}_{instrument1}_{instrument2}_{model_type}_models.json")
-    with open(path_out, "w") as f:
-        json.dump({instrument1: path1, instrument2: path2}, f, indent=2)
-
-
 def generate_extremes(model1, model2, instrument1, instrument2, model_type,
                        pitch_tensor, loudness_norm, filename, results_folder, sr):
+    '''
+    Generate and save the model outputs for two instruments using their respective models.
+    Args:
+        model1 (torch.nn.Module): The first instrument's model.
+        model2 (torch.nn.Module): The second instrument's model.
+        instrument1 (str): Name of the first instrument.
+        instrument2 (str): Name of the second instrument.
+        model_type (str): Type of the model used.
+        pitch_tensor (torch.Tensor): Tensor containing pitch information.
+        loudness_norm (dict): Normalized loudness values for each instrument.
+        filename (str): Base name of the test file.
+        results_folder (str): Path to the results folder where the audio files should be saved.
+        sr (int): Sample rate for the audio files.
+    '''
     instrument_1_audio = f"{results_folder}/{filename}_{instrument1}_{model_type}.wav"
     if not os.path.exists(instrument_1_audio):
         instrument1_output = model1.forward(pitch_tensor, loudness_norm[instrument1])
@@ -113,6 +58,24 @@ def generate_extremes(model1, model2, instrument1, instrument2, model_type,
 def generate_interpolated_outputs(model1, model2, instrument1, instrument2, model_type,
                                    pitch_tensor, loudness_tensor, mean, std, filename,
                                    results_folder, sr, alphas):
+    '''
+    Generate and save the output obtained when interpolating the synth parameters of two models.
+    Generate outputs with and without reverb for each interpolation parameter in the alphas list.
+    Args:
+        model1 (torch.nn.Module): The first instrument's model.
+        model2 (torch.nn.Module): The second instrument's model.
+        instrument1 (str): Name of the first instrument.
+        instrument2 (str): Name of the second instrument.
+        model_type (str): Type of the model used.
+        pitch_tensor (torch.Tensor): Tensor containing pitch information.
+        loudness_tensor (torch.Tensor): Tensor containing loudness information.
+        mean (float): Mean value for normalization.
+        std (float): Standard deviation for normalization.
+        filename (str): Base name of the test file.
+        results_folder (str): Path to the results folder where the audio files should be saved.
+        sr (int): Sample rate for the audio files.
+        alphas (list): List of interpolation parameters.
+    '''
     for alpha in alphas:
         alpha_pct = int(alpha * 100)
         base_name = f"{filename}_interpolated_output_{instrument1}_{instrument2}_{model_type}_alpha_{alpha_pct}"
@@ -125,7 +88,7 @@ def generate_interpolated_outputs(model1, model2, instrument1, instrument2, mode
         if not need_with_reverb and not need_without_reverb:
             continue
 
-        loudness_norm_interp = normalize_loudness_interpolated(
+        loudness_norm_interp = standardize_loudness_interpolated(
             loudness_tensor, mean, std, instrument1, instrument2, alpha
         )
         output_without_reverb = get_interpolated_output(
@@ -144,6 +107,26 @@ def generate_interpolated_outputs(model1, model2, instrument1, instrument2, mode
 def generate_interpolated_weights_outputs(state_model_1, state_model_2, instrument1, instrument2, model_type,
                                            pitch_tensor, loudness_tensor, mean, std, filename,
                                            results_folder, sr, config, alphas, device):
+    '''
+    Generate and save the output of a model whose weights are interpolated weights of two models.
+    Save result with and without reverb for each interpolation parameter in the alphas list.
+    Args:
+        state_model_1 (dict): State dictionary of the first instrument's model.
+        state_model_2 (dict): State dictionary of the second instrument's model.
+        instrument1 (str): Name of the first instrument.
+        instrument2 (str): Name of the second instrument.
+        model_type (str): Type of the model used.
+        pitch_tensor (torch.Tensor): Tensor containing pitch information.
+        loudness_tensor (torch.Tensor): Tensor containing loudness information.
+        mean (float): Mean value for normalization.
+        std (float): Standard deviation for normalization.
+        filename (str): Base name of the test file.
+        results_folder (str): Path to the results folder where the audio files should be saved.
+        sr (int): Sample rate for the audio files.
+        config (dict): Configuration for the models.
+        alphas (list): List of interpolation parameters.
+        device (torch.device): Device to run the models on.
+    '''
     for alpha in alphas:
         alpha_pct = int(alpha * 100)
         base_name = f"{filename}_interpolated_weights_{instrument1}_{instrument2}_{model_type}_alpha_{alpha_pct}"
@@ -156,7 +139,7 @@ def generate_interpolated_weights_outputs(state_model_1, state_model_2, instrume
         if not need_with_reverb and not need_without_reverb:
             continue
 
-        loudness_norm_interp = normalize_loudness_interpolated(
+        loudness_norm_interp = standardize_loudness_interpolated(
             loudness_tensor, mean, std, instrument1, instrument2, alpha
         )
         interpolated_weights_model = get_model_with_interpolated_weights(
@@ -181,6 +164,28 @@ def generate_interpolated_weights_outputs(state_model_1, state_model_2, instrume
 def generate_output_sweep(model1, model2, instrument1, instrument2, model_type,
                            pitch_tensor, loudness_tensor, mean, std, filename,
                            results_folder, sr):
+    '''
+    Generate and save the output for interpolating synth paraeters for two models, sweeping the interpolation parameter.
+    If reverb is desired, the reverb IR of both models is averaged and applied, only the dry signal is affected by the
+    interpolation parameter.
+    The sweep is generated in three parts:
+        first third of audio: outputs for the first model
+        middle third of audio: interpolated outputs between the two models, sweeping alpha from 0 to 1
+        last third of audio: outputs for the second model
+    Args:
+        model1 (dict): State dictionary of the first instrument's model.
+        model2 (dict): State dictionary of the second instrument's model.
+        instrument1 (str): Name of the first instrument.
+        instrument2 (str): Name of the second instrument.
+        model_type (str): Type of the model used.
+        pitch_tensor (torch.Tensor): Tensor containing pitch information.
+        loudness_tensor (torch.Tensor): Tensor containing loudness information.
+        mean (float): Mean value for normalization.
+        std (float): Standard deviation for normalization.
+        filename (str): Base name of the test file.
+        results_folder (str): Path to the results folder where the audio files should be saved.
+        sr (int): Sample rate for the audio files.
+    '''
     base_name = f"{filename}_sweep_output_{instrument1}_{instrument2}_{model_type}"
     with_reverb_path = f"{results_folder}/{base_name}_with_reverb.wav"
     without_reverb_path = f"{results_folder}/{base_name}_without_reverb.wav"
@@ -210,6 +215,30 @@ def generate_output_sweep(model1, model2, instrument1, instrument2, model_type,
 def generate_weights_sweep(state_model_1, state_model_2, instrument1, instrument2, model_type,
                             pitch_tensor, loudness_tensor, mean, std, filename,
                             results_folder, sr, config, device):
+    '''
+    Generate and save the weights sweep for two instruments using their respective models.
+    If reverb is desired, the reverb IR of both models is averaged and applied, only
+    the dry signal is interpolated.
+    The sweep is generated in three parts:
+        first third of audio: weights for the first model
+        middle third of audio: interpolated weights between the two models, sweeping alpha from 0 to 1
+        last third of audio: weights for the second model
+    Args:
+        state_model_1 (dict): State dictionary of the first instrument's model.
+        state_model_2 (dict): State dictionary of the second instrument's model.
+        instrument1 (str): Name of the first instrument.
+        instrument2 (str): Name of the second instrument.
+        model_type (str): Type of the model used.
+        pitch_tensor (torch.Tensor): Tensor containing pitch information.
+        loudness_tensor (torch.Tensor): Tensor containing loudness information.
+        mean (float): Mean value for normalization.
+        std (float): Standard deviation for normalization.
+        filename (str): Base name of the test file.
+        results_folder (str): Path to the results folder where the audio files should be saved.
+        sr (int): Sample rate for the audio files.
+        config (dict): Configuration parameters for the interpolation.
+        device (torch.device): Device on which to perform computations.
+    '''
     base_name = f"{filename}_sweep_weights_{instrument1}_{instrument2}_{model_type}"
     with_reverb_path = f"{results_folder}/{base_name}_with_reverb.wav"
     without_reverb_path = f"{results_folder}/{base_name}_without_reverb.wav"
@@ -219,25 +248,19 @@ def generate_weights_sweep(state_model_1, state_model_2, instrument1, instrument
     if not need_with_reverb and not need_without_reverb:
         return
 
-    n_steps = pitch_tensor.shape[1]
-    frames_no_morph = n_steps // 3
-    alpha_values = torch.cat([
-        torch.zeros(frames_no_morph),
-        torch.linspace(0, 1, n_steps - 2 * frames_no_morph),
-        torch.ones(frames_no_morph),
-    ])
+    n_steps_no_morph = pitch_tensor.shape[1] // 3
 
     if need_without_reverb:
         output_without_reverb = get_interpolated_weights_sweep(
             state_model_1, state_model_2, pitch_tensor, loudness_tensor, mean, std, instrument1, instrument2,
-            config, alpha_values, reverb=False, device=device
+            config, n_steps_no_morph, reverb=False, device=device
         )
         save_audio_if_missing(without_reverb_path, output_without_reverb, sr)
 
     if need_with_reverb:
         output_with_reverb = get_interpolated_weights_sweep(
             state_model_1, state_model_2, pitch_tensor, loudness_tensor, mean, std, instrument1, instrument2,
-            config, alpha_values, reverb=True, device=device
+            config, n_steps_no_morph, reverb=True, device=device
         )
         save_audio_if_missing(with_reverb_path, output_with_reverb, sr)
 
@@ -245,6 +268,24 @@ def generate_weights_sweep(state_model_1, state_model_2, instrument1, instrument
 def process_pair(instrument1, instrument2, instrument_paths, split_data, mean, std,
                   preprocess_config, files_processed_folder, results_folder, sr, config,
                   model_types, alphas, device):
+    '''
+    Process a pair of instruments by generating audio outputs for each test file in the split data.
+    Args:
+        instrument1 (str): Name of the first instrument.
+        instrument2 (str): Name of the second instrument.
+        instrument_paths (dict): Dictionary mapping instrument names to their respective model paths.
+        split_data (dict): Dictionary containing the split data for each instrument.
+        mean (float): Mean value for normalization.
+        std (float): Standard deviation for normalization.
+        preprocess_config (dict): Configuration parameters for preprocessing.
+        files_processed_folder (str): Path to the folder where processed files are stored.
+        results_folder (str): Path to the folder where results should be saved.
+        sr (int): Sample rate for the audio files.
+        config (dict): Configuration parameters for the interpolation.
+        model_types (list): List of model types to use.
+        alphas (list): List of alpha values for interpolation.
+        device (torch.device): Device on which to perform computations.
+    '''
     print(f"working on {instrument1}->{instrument2}")
 
     instrument_cache_folder = os.path.join(files_processed_folder, instrument1)
@@ -260,7 +301,7 @@ def process_pair(instrument1, instrument2, instrument_paths, split_data, mean, s
         pitch_tensor = pitch_tensor.to(device)
         loudness_tensor = loudness_tensor.to(device)
 
-        loudness_norm = normalize_loudness(
+        loudness_norm = standardize_loudness(
             loudness_tensor, mean, std, [instrument1, instrument2]
         )
 

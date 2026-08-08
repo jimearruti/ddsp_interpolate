@@ -8,7 +8,7 @@ from effortless_config import Config
 
 
 class args(Config):
-    GENERATE_CONFIG = "generate_config.yaml"
+    GENERATE_CONFIG = "inference/generate_config.yaml"
 
 args.parse_args()
 

@@ -237,41 +237,88 @@ def load_model_from_weights(path_to_weights, config, device="cpu"):
     return build_model_from_state_dict(state_model, config, device)
 
 
+def build_sweep_alphas(n_steps, n_steps_no_morph, device=None, dtype=None):
+    '''
+    Build a per-frame alpha tensor for a sweep: flat 0, linear ramp 0->1, flat 1.
+    Arguments:
+        n_steps: total number of frames in the sweep
+        n_steps_no_morph: number of flat (non-interpolated) frames at each end
+        device: device to build the tensor on
+        dtype: dtype of the tensor
+    Returns:
+        alpha_values: 1D tensor of length n_steps
+    '''
+    return torch.cat([
+        torch.zeros(n_steps_no_morph, device=device, dtype=dtype),
+        torch.linspace(0, 1, n_steps - 2 * n_steps_no_morph, device=device, dtype=dtype),
+        torch.ones(n_steps_no_morph, device=device, dtype=dtype)
+    ])
+
+
 @torch.no_grad()
 def get_interpolated_outputs_sweep(model1, model2, pitch, loudness, mean, std, instrument1, instrument2,
                                    n_steps_no_morph, ir1=None, ir2=None, reverb=True):
-    block_size = model1.block_size
+    '''
+    Generate the output by interpolating synth parameters between two models.the dry signal is affected by the interpolation parameter.
+    The sweep is generated in three parts:
+        first third of audio: outputs for the first model
+        middle third of audio: interpolated parameters between the two models, sweeping alpha from 0 to 1
+        last third of audio: outputs for the second model
+    Arguments:
+        model1: first DDSP model
+        model2: second DDSP model
+        pitch: pitch input tensor
+        loudness: loudness input tensor
+        mean: mean values for loudness normalization
+        std: standard deviation values for loudness normalization
+        instrument1: identifier for the first instrument
+        instrument2: identifier for the second instrument
+        n_steps_no_morph: number of steps for non-interpolated sections
+        ir1: impulse response for the first model (optional)
+        ir2: impulse response for the second model (optional)
+        reverb: whether to apply reverb (default: True)
+    Returns:
+        signal: interpolated output signal tensor of shape (batch, time, 1)
+    '''
+    # amount of frames
     n_steps = pitch.shape[1]
 
-    alpha_values = torch.cat([
-        torch.zeros(n_steps_no_morph, device=pitch.device, dtype=pitch.dtype),
-        torch.linspace(0, 1, n_steps - 2 * n_steps_no_morph, device=pitch.device, dtype=pitch.dtype),
-        torch.ones(n_steps_no_morph, device=pitch.device, dtype=pitch.dtype)
-    ])
+    # create a tensor of interpolation parameters (alpha) for each frame
+    # first a no_morph section, then a morph section, then a no_morph section
+    # morph is linearly interpolated between 0 and 1
+    alpha_values = build_sweep_alphas(n_steps, n_steps_no_morph, device=pitch.device, dtype=pitch.dtype)
 
+    # reshape alpha_values to match the shape of pitch and loudness
     alpha_tensor = alpha_values.view(1, n_steps, 1)
 
+    # interpolate mean and std for loudness normalization
     interp_mean = (1 - alpha_tensor) * mean[instrument1] + alpha_tensor * mean[instrument2]
     interp_std = (1 - alpha_tensor) * std[instrument1] + alpha_tensor * std[instrument2]
     loudness_norm = (loudness - interp_mean) / interp_std
 
+    # get amplitudes and filter impulse response from both models
     amplitudes1 = get_amplitudes(model1, pitch, loudness_norm)
     amplitudes2 = get_amplitudes(model2, pitch, loudness_norm)
 
+    # interpolate amplitudes
     amplitudes = (1 - alpha_tensor) * amplitudes1 + alpha_tensor * amplitudes2
 
+    # get filter parameters and convert to impulse responses
     param1 = get_filter_param(model1, pitch, loudness_norm)
     impulse1 = amp_to_impulse_response(param1, model1.block_size)
     param2 = get_filter_param(model2, pitch, loudness_norm)
     impulse2 = amp_to_impulse_response(param2, model2.block_size)
-    
+
+    # interpolate impulse responses
     impulse = (1 - alpha_tensor) * impulse1 + alpha_tensor * impulse2
 
-    
+    # upsample amplitudes and pitch to match sr (they are at control rate before)
     amplitudes = upsample(amplitudes, model1.block_size)
     pitch = upsample(pitch, model1.block_size)
+    # synthesize harmonic output
     harmonic = harmonic_synth(pitch, amplitudes, model1.sampling_rate)
 
+    # generate noise
     noise = torch.rand(
         impulse.shape[0],
         impulse.shape[1],
@@ -280,17 +327,21 @@ def get_interpolated_outputs_sweep(model1, model2, pitch, loudness, mean, std, i
         device=impulse.device,
     ).to(impulse) * 2 - 1
 
+    # filter it with the interpolated impulse response
     noise = fft_convolve(noise, impulse).contiguous()
     noise = noise.reshape(noise.shape[0], -1, 1)
 
+    # combine harmonic and noise to get the final signal
     signal = harmonic + noise
 
+    # apply reverb if desired
     if reverb == True:
         len_signal = signal.shape[1]
         if ir1 is None:
             ir1 = model1.reverb.build_impulse()
         if ir2 is None:
             ir2 = model2.reverb.build_impulse()
+        # reverb is applied with a fixed alpha of 0.5, as it is not part of the interpolation sweep
         alpha = 0.5
         ir = get_interpolated_reverb_ir(ir1, ir2, alpha)
         ir = nn.functional.pad(ir, (0, 0, 0, len_signal - model1.reverb.length))
@@ -301,14 +352,37 @@ def get_interpolated_outputs_sweep(model1, model2, pitch, loudness, mean, std, i
 @torch.no_grad()
 def get_interpolated_weights_sweep(state_model_1, state_model_2,
                                    pitch, loudness, mean, std, instrument1, instrument2,
-                                   config, alpha_values, reverb=True, device="cpu"):
+                                   config, n_steps_no_morph, reverb=True, device="cpu"):
+    '''
+    Generate the output by interpolating the weights of two models.
+    The dry signal is affected by the interpolation parameter.
+    The sweep is generated in three parts:
+        first third of audio: outputs for the first model
+        middle third of audio: interpolated weights between the two models, sweeping alpha from 0 to 1
+        last third of audio: outputs for the second model
+    Arguments:
+        state_model_1: state dictionary of the first model
+        state_model_2: state dictionary of the second model
+        pitch: pitch input tensor
+        loudness: loudness input tensor
+        mean: mean values for loudness normalization
+        std: standard deviation values for loudness normalization
+        instrument1: identifier for the first instrument
+        instrument2: identifier for the second instrument
+        config: configuration dictionary for the model
+        n_steps_no_morph: number of steps for non-interpolated sections
+        reverb: whether to apply reverb (default: True)
+        device: device to build the model on
+    Returns:
+        signal: interpolated output signal tensor of shape (batch, time, 1)
+    '''
     interp_model = build_model_from_state_dict(state_model_1, config, device=device)
 
     block_size = interp_model.block_size
     n_steps = pitch.shape[1]
     n_audio_samples = n_steps * block_size
 
-    assert len(alpha_values) == n_steps, "Length of alpha_values must match the number of frames."
+    alpha_values = build_sweep_alphas(n_steps, n_steps_no_morph, device=pitch.device, dtype=pitch.dtype)
 
     output = torch.zeros(pitch.shape[0], n_audio_samples, 1, dtype=pitch.dtype, device=pitch.device)
 
