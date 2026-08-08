@@ -2,9 +2,9 @@
 
 ### Dataset split
 
-Edit `config.yaml` to adjust ratios for validation and train splits, and insert the preprocess folder you want the data to be split in. 
+Edit `../config.yaml` to adjust ratios for validation and train splits, and insert the preprocess folder you want the data to be split in. 
 
-After, perform the data split using
+After, while in the root directory, perform the data split using
 
 ```bash
 python -m train.split_dataset
