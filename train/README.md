@@ -1,6 +1,15 @@
-## Train block
+# Train block
 
-### Dataset split
+## Weights and Biases for logging
+* Create an account on [Weights and Biases](https://wandb.ai/site/)
+* [Get your API KEY](https://docs.wandb.ai/support/models/articles/how-do-i-find-my-api-key)
+* Create a `.env` file in the root dir that says
+```
+WANDB_API_KEY=<YOUR_API_KEY>
+```
+This will be used automatically during training.
+
+## Dataset split
 
 Edit `../config.yaml` to adjust ratios for validation and train splits, and insert the preprocess folder you want the data to be split in. Defaults are:
 ```
@@ -18,7 +27,7 @@ The split is done on a **piece** level, to ensure no leakage takes place. There'
 
 The split used for our experiments can be seen in `preprocessed/split_files.json`.
 
-### Data preprocessing
+## Data preprocessing
 
 Edit `../config.yaml` file to fit your needs (instruments to consider, audio location, preprocess folder, sampling rate, model parameters...), then preprocess your data using 
 
@@ -37,9 +46,9 @@ python -m train.train --name mytraining_from_scratch (--steps 30000 --instrument
 ```
 If no instrument is specified, a model for each instrument defined in `config.yaml` will be trained.
 
-### Finetuning from a base model
+## Finetuning from a base model
 
-#### Creating a base model
+### Creating a base model
 
 To obtain a base model, you need to run
 
@@ -51,7 +60,7 @@ This will create a base model using data from all instruments defined in `config
 
 The trained base models are saved in `runs/<training_name>/<timestamp_with_date_and_time_info>/base_model/state_<checkpoint_number>.pth`
 
-#### Finetuning
+### Finetuning
 After the base model is obtained, a normal train cycle as described above (in training from scratch) should be run, adding `--base_model_path /path/to/base/model` to the call. 
 
 ```bash
