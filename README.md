@@ -9,9 +9,9 @@ This repository is tailored for offline interpolation between instruments, and r
 The structure is divided into three blocks: **Train, Inference and Evaluation.** 
 For detailed instructions on each block, see their README files:
 
-[Train](https://github.com/jimearruti/ddsp_interpolate/blob/main/train/README.md)
-[Inference](TODO)
-[Evaluation](TODO)
+* [Train](https://github.com/jimearruti/ddsp_interpolate/blob/main/train/README.md)
+* [Inference](TODO)
+* [Evaluation](TODO)
 
 Remember that everything is run from the root folder!
 
