@@ -3,6 +3,26 @@
     "resynth_paths": [
         "../data/URMP/Dataset/rearranged/test_fl",
 
+        "./results_reordered/finetuned_from_30k_for_30k/fl_tpt",
+        "./results_reordered/finetuned_from_30k_for_30k/tpt_fl",
+        "./results_reordered/finetuned_from_30k_for_30k/vn_fl",
+        "./results_reordered/finetuned_from_30k_for_30k/fl_vn",
+
+        "./results_reordered/finetuned_from_30k_for_15k/fl_tpt",
+        "./results_reordered/finetuned_from_30k_for_15k/tpt_fl",
+        "./results_reordered/finetuned_from_30k_for_15k/vn_fl",
+        "./results_reordered/finetuned_from_30k_for_15k/fl_vn",
+
+        "./results_reordered/finetuned_from_15k_for_15k/fl_tpt",
+        "./results_reordered/finetuned_from_15k_for_15k/tpt_fl",
+        "./results_reordered/finetuned_from_15k_for_15k/vn_fl",
+        "./results_reordered/finetuned_from_15k_for_15k/fl_vn",
+
+        "./results_reordered/finetuned_from_15k_for_30k/fl_tpt",
+        "./results_reordered/finetuned_from_15k_for_30k/tpt_fl",
+        "./results_reordered/finetuned_from_15k_for_30k/vn_fl",
+        "./results_reordered/finetuned_from_15k_for_30k/fl_vn",
+
         "./results_reordered/finetuned_from_30k_for_30k/fl",
 
         "./results_reordered/finetuned_from_30k_for_30k/fl_tpt/alpha_0",

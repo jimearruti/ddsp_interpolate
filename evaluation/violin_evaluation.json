@@ -2,6 +2,28 @@
     "background_path": "../data/URMP/Dataset/rearranged/train_vn",
     "resynth_paths": [
         "../data/URMP/Dataset/rearranged/test_vn",
+        
+        "./results_reordered/finetuned_from_30k_for_30k/vn_tpt",
+        "./results_reordered/finetuned_from_30k_for_30k/tpt_vn",
+        "./results_reordered/finetuned_from_30k_for_30k/vn_fl",
+        "./results_reordered/finetuned_from_30k_for_30k/fl_vn",
+
+        "./results_reordered/finetuned_from_30k_for_15k/vn_tpt",
+        "./results_reordered/finetuned_from_30k_for_15k/tpt_vn",
+        "./results_reordered/finetuned_from_30k_for_15k/vn_fl",
+        "./results_reordered/finetuned_from_30k_for_15k/fl_vn",
+
+        "./results_reordered/finetuned_from_15k_for_15k/vn_tpt",
+        "./results_reordered/finetuned_from_15k_for_15k/tpt_vn",
+        "./results_reordered/finetuned_from_15k_for_15k/vn_fl",
+        "./results_reordered/finetuned_from_15k_for_15k/fl_vn",
+
+        "./results_reordered/finetuned_from_15k_for_30k/vn_tpt",
+        "./results_reordered/finetuned_from_15k_for_30k/tpt_vn",
+        "./results_reordered/finetuned_from_15k_for_30k/vn_fl",
+        "./results_reordered/finetuned_from_15k_for_30k/fl_vn",
+
+        
         "./results_reordered/finetuned_from_30k_for_30k/vn",
 
         "./results_reordered/finetuned_from_30k_for_30k/vn_tpt/alpha_0",
