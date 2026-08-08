@@ -7,16 +7,15 @@ generate:
     - finetuned_from_15k_for_15k
     - finetuned_from_15k_for_30k
   instruments: [vn, fl, tpt]
-  sweep_window_length: 8
 
 postprocess:
   target_lufs: -24.0
 
   normalize_results:
-    results_dir: results
+    results_dir: results_normalised
 
   crop:
-    results_dir: results
+    results_dir: results_normalised
     output_dir: results_cropped
     fade_duration: 0.02
     pieces:
