@@ -1,7 +1,11 @@
-"""Reorganize a results folder into results_reordered/{model}/{instrument(s)}/[alpha_X]/file.
+"""Reorganize a results folder into
+results_reordered/{model}/[output|weights]/{instrument(s)}/[alpha_X]/[with|without_reverb]/file.
 
 Original layout: results/<piece_folder>/<various files>.wav|.json
-New layout:       results_reordered/<model>/<instrument_or_pair>/[alpha_<value>/]<original filename>
+New layout (single-instrument synthesis):
+    results_reordered/<model>/<instrument>/<original filename>
+New layout (interpolation, output-space or weight-space):
+    results_reordered/<model>/<output|weights>/<instrument_pair>/alpha_<value>/<with|without>_reverb/<original filename>
 
 Also creates a "flattened" subfolder inside each model's folder
 (results_reordered/<model>/flattened) containing all of that model's files
@@ -22,7 +26,7 @@ MODEL = r"(?:from_scratch|finetuned_from_\d+k_for_\d+k)"
 PATTERNS = [
     # interpolated_output_/interpolated_weights_ + pair + model + alpha + reverb
     re.compile(
-        rf"interpolated_(?:output|weights)_(?P<i1>[a-z]+)_(?P<i2>[a-z]+)_"
+        rf"interpolated_(?P<method>output|weights)_(?P<i1>[a-z]+)_(?P<i2>[a-z]+)_"
         rf"(?P<model>{MODEL})_alpha_(?P<alpha>\d+)_(?P<reverb>with|without)_reverb\.wav$"
     ),
     # single-instrument synthesis wav
@@ -40,12 +44,16 @@ def classify(filename):
         if "i1" in g:
             # keep original order: alpha's meaning depends on which instrument is first
             pair = f"{g['i1']}_{g['i2']}"
+            method = g["method"]
+            reverb = f"{g['reverb']}_reverb"
         else:
             pair = g["inst"]
+            method = None
+            reverb = None
         alpha_dir = None
         if g.get("alpha") is not None:
             alpha_dir = f"alpha_{g['alpha']}"
-        return model, pair, alpha_dir
+        return model, method, pair, alpha_dir, reverb
     return None
 
 
@@ -69,10 +77,15 @@ def main():
             if result is None:
                 unmatched.append(f)
                 continue
-            model, pair, alpha_dir = result
-            parts = [args.dst, model, pair]
+            model, method, pair, alpha_dir, reverb = result
+            parts = [args.dst, model]
+            if method:
+                parts.append(method)
+            parts.append(pair)
             if alpha_dir:
                 parts.append(alpha_dir)
+            if reverb:
+                parts.append(reverb)
             out_dir = Path(*parts)
             out_dir.mkdir(parents=True, exist_ok=True)
             out_path = out_dir / f.name
