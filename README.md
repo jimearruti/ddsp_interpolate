@@ -15,16 +15,5 @@ For detailed instructions on each block, see their README files:
 
 Remember that everything is run from the root folder!
 
-## Main changes from original repo
-* Added data split logic
-* Automated training of separate models for each instrument
-* Added base model and finetuning logic
-* Implemented exponential decay for training as described in the DDSP paper
-* Corrected issues pointed in reference repo (Loudness, MLP bug)
-* Corrected std calculation
-* Everything related to interpolation
-
-
-
 
 
