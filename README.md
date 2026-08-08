@@ -6,6 +6,24 @@ The original code was modified to use the [UMRP Dataset](https://labsites.roches
 
 This repository is tailored for offline interpolation between instruments, and realtime considerations were left for future work.
 
+## Setup
+
+Create and activate a virtual environment, then install the dependencies:
+
+**Windows (PowerShell)**
+```powershell
+python -m venv venv
+venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+**macOS / Linux**
+```bash
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
 The structure is divided into three blocks: **Train, Inference and Evaluation.** 
 For detailed instructions on each block, see their README files:
 
