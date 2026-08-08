@@ -1,11 +1,11 @@
-import pathlib
 import json
+import pathlib
+import yaml
 
 import librosa as li
-import pyloudnorm as pyln
 import numpy as np
+import pyloudnorm as pyln
 import torch
-import yaml
 from tqdm import tqdm
 
 from ddsp.core import extract_loudness, extract_pitch
@@ -14,13 +14,30 @@ from effortless_config import Config
 
 
 def save_subdataset(signals, pitches, loudness, out_path):
+    '''
+    Save the preprocessed signals, pitches, and loudness to .npy files in the specified output path.
+    Args:
+        signals (np.ndarray): The preprocessed audio signals.
+        pitches (np.ndarray): The extracted pitch features.
+        loudness (np.ndarray): The extracted loudness features.
+        out_path (pathlib.Path): The output path where the files will be saved.
+    '''
     out_path.mkdir(parents=True, exist_ok=True)
     np.save(out_path / "signals.npy", signals)
     np.save(out_path / "pitches.npy", pitches)
     np.save(out_path / "loudness.npy", loudness)
 
-
 class DatasetMultiInstrument(torch.utils.data.Dataset):
+    '''
+    A PyTorch Dataset class for loading preprocessed audio data for multiple instruments.
+    Attributes:
+        signals (np.ndarray): The preprocessed audio signals.
+        pitches (np.ndarray): The extracted pitch features.
+        loudness (np.ndarray): The extracted loudness features.
+    Methods:
+        __len__(): Returns the number of samples in the dataset.
+        __getitem__(idx): Returns the signals, pitches, and loudness for the sample at the specified index.
+    '''
     def __init__(self, out_dir, instrument, subset="train"):
         super().__init__()
         data_path = pathlib.Path(out_dir) / instrument / subset
@@ -40,29 +57,46 @@ class DatasetMultiInstrument(torch.utils.data.Dataset):
 
 def preprocess(
     f, sampling_rate, block_size, signal_length, oneshot, n_fft, **_):
-    '''Preprocess a single audio file.
+    '''Preprocess a single audio file. Normalise to -1 dB, high-pass filter at 80 Hz, 
+        and extract pitch and loudness features. Divide the audio into segments of length
+        `signal_length` and return the preprocessed signals, pitches, and loudness.
+
     Args:
         f: Path to the audio file.
         sampling_rate: Sampling rate to load the audio file.
         block_size: Block size for pitch and loudness extraction.
         signal_length: Length of the output signal segments.
         oneshot: If True, only process the first segment of the audio file.
-        nfft: Number of FFT bins for loudness extraction.'''
-
+        nfft: Number of FFT bins for loudness extraction.
+        
+    Returns:
+        x: Preprocessed audio signal segments.
+        pitch: Extracted pitch features for each segment.
+        loudness: Extracted loudness features for each segment.
+    '''
+    # load the audio file at the config sampling rate
     x, _ = li.load(f, sr=sampling_rate)
+    # peak normalize to -1 dB
     x = pyln.normalize.peak(x, -1.0)
+    # apply high pass filter at 80 Hz to remove low frequency noise
     x = high_pass_filter(x, 80, fs=sampling_rate)
 
+    # Pad the signal to be a multiple of signal_length
     N = (signal_length - len(x) % signal_length) % signal_length
+    # Pad the signal with zeros at the end
     x = np.pad(x, (0, N))
 
     if oneshot:
         x = x[..., :signal_length]
 
+    # Extract pitch and loudness features
     pitch = extract_pitch(x, sampling_rate, block_size)
     loudness = extract_loudness(x, sampling_rate, block_size, n_fft=n_fft)
 
+    # Split into segments assuming signal_length is a multiple of block_size,
+    # x to shape (num_segments, signal_length)
     x = x.reshape(-1, signal_length)
+    # pitch and loudness to shape (num_segments, signal_length // block_size)
     pitch = pitch.reshape(x.shape[0], -1)
     loudness = loudness.reshape(x.shape[0], -1)
 
@@ -70,6 +104,16 @@ def preprocess(
 
 
 def process_files(files, config):
+    '''
+    Process a list of audio files and return the preprocessed signals, pitches, and loudness.
+    Args:
+        files: List of paths to the audio files.
+        config: Configuration dictionary containing preprocessing parameters.
+    Returns:
+        signals (np.ndarray): The preprocessed audio signal segments.
+        pitches (np.ndarray): The extracted pitch features for each segment.
+        loudness (np.ndarray): The extracted loudness features for each segment.
+    '''
     if not files:
         return None
     
@@ -93,6 +137,15 @@ def process_files(files, config):
 
 
 def preprocess_dataset(config):
+    '''
+    Preprocess the dataset for each instrument and split (train, val, test) 
+    and save the preprocessed data to .npy files.
+    
+    Args:
+        config: Configuration dictionary containing preprocessing parameters and dataset information.
+    Returns:
+        None: Saves the preprocessed signals, pitches, and loudness to .npy files in the specified output directory.
+    '''
 
     root_out_path = pathlib.Path(config["preprocess"]["out_dir"])
 

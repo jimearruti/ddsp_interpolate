@@ -1,9 +1,8 @@
 import datetime
 import json
-import pathlib
 import os
+import pathlib
 
-import numpy as np
 import soundfile as sf
 import yaml
 from effortless_config import Config
@@ -13,10 +12,33 @@ from .train_base_model import make_dataloaders
 
 
 def get_duration(f):
+    '''
+    Get the duration of an audio file in seconds.
+    '''
     info = sf.info(str(f))
     return info.frames / info.samplerate
 
-def analyze_dataset(split_data):
+
+def calculate_durations_per_instrument_per_split(split_data):
+    '''
+    Analyze the dataset and return a summary of durations for each instrument and split.
+    Parameters:
+    split_data (dict): A dictionary containing the split data for each instrument.
+    Returns:
+    dict: A dictionary containing the duration summary for each instrument and split in the format
+    {
+        "instrument1": {
+            "train": "HH:MM:SS",
+            "val": "HH:MM:SS",
+            "test": "HH:MM:SS"
+        },
+        "instrument2": {
+            "train": "HH:MM:SS",
+            "val": "HH:MM:SS",
+            "test": "HH:MM:SS"
+        }
+    }
+    '''
     instruments = split_data.keys()
     duration_summary = {}
 
@@ -24,13 +46,20 @@ def analyze_dataset(split_data):
         duration_summary[instrument] = {}
 
         for split, files in split_data[instrument].items():
+            # sum duration of all files that exist in the split for that instrument
             total_seconds = sum(get_duration(f) for f in files if pathlib.Path(f).exists())
+            # store in a dictionary with instrument and split as keys, and duration as a string in the format "HH:MM:SS"
             duration_summary[instrument][split] = str(datetime.timedelta(seconds=int(total_seconds)))
 
     return duration_summary
 
 
 def print_duration_summary(duration_summary):
+    '''
+    Print the duration summary in a table format.
+    Parameters:
+    duration_summary (dict): A dictionary containing the duration summary for each instrument and split.
+    '''
     print("\n" + "=" * 60)
     print(f"{'Instrument':<20} | {'Split':<10} | {'Duration':<15}")
     print("=" * 60)
@@ -43,6 +72,15 @@ def print_duration_summary(duration_summary):
 
 
 def get_train_stats_for_dataset(config, batch, split_dataset):
+    '''
+    Get the mean and standard deviation of loudness for the training dataset.
+    Parameters:
+    config (dict): A dictionary containing configuration information.
+    batch (int): The batch size for the dataloader.
+    split_dataset (dict): A dictionary containing the split data for each instrument.
+    Returns:
+    None: Saves the mean and standard deviation of loudness to a YAML file in the output directory.
+    '''
     out_dir = pathlib.Path(config["preprocess"]["out_dir"])
     instruments = split_dataset.keys()
     
@@ -92,7 +130,7 @@ def main():
     with open(split_file) as f:
         split_data = json.load(f)
 
-    duration_summary = analyze_dataset(split_data)
+    duration_summary = calculate_durations_per_instrument_per_split(split_data)
     print_duration_summary(duration_summary)
     get_train_stats_for_dataset(config, args.BATCH, split_data)
 
