@@ -20,7 +20,7 @@ from train.preprocess import preprocess
 
 class args(Config):
     CONFIG = "config.yaml"
-    GENERATE_CONFIG = "generate_config.yaml"
+    GENERATE_CONFIG = "inference/generate_config.yaml"
 
 
 def load_config(config_path):
