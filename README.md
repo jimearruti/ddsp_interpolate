@@ -30,7 +30,7 @@ For detailed instructions on each block, see their README files:
 
 * [Train](https://github.com/jimearruti/ddsp_interpolate/blob/main/train/README.md)
 * [Inference](https://github.com/jimearruti/ddsp_interpolate/blob/main/inference/README.md)
-* [Evaluation](TODO)
+* [Evaluation](https://github.com/jimearruti/ddsp_interpolate/blob/main/evaluation/README.md)
 
 Remember that everything is run from the root folder!
 
