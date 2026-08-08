@@ -6,13 +6,15 @@ The original code was modified to use the [UMRP Dataset](https://labsites.roches
 
 This repository is tailored for offline interpolation between instruments, and realtime considerations were left for future work.
 
-The structure is divided into three blocks: **Train, Inference and Evaluation.** Go to each folder to read the README on each block.
+The structure is divided into three blocks: **Train, Inference and Evaluation.** 
+For detailed instructions on each block, see their README files:
 
+[Train](https://github.com/jimearruti/ddsp_interpolate/blob/main/train/README.md)
+[Inference](TODO)
+[Evaluation](TODO)
 
-## Inference block
-TODO
-## Evaluation block
-TODO
+Remember that everything is run from the root folder!
+
 ## Main changes from original repo
 * Added data split logic
 * Automated training of separate models for each instrument
