@@ -24,6 +24,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+## Structure and further instructions
 The structure is divided into three blocks: **Train, Inference and Evaluation.** 
 For detailed instructions on each block, see their README files:
 
