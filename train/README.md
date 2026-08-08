@@ -2,7 +2,11 @@
 
 ### Dataset split
 
-Edit `../config.yaml` to adjust ratios for validation and train splits, and insert the preprocess folder you want the data to be split in. 
+Edit `../config.yaml` to adjust ratios for validation and train splits, and insert the preprocess folder you want the data to be split in. Defaults are:
+```
+val_ratio: 0
+test_ratio: 0.3
+```
 
 After, while in the root directory, perform the data split using
 
@@ -16,7 +20,7 @@ The split used for our experiments can be seen in `preprocessed/split_files.json
 
 ### Data preprocessing
 
-Edit the `config.yaml` file to fit your needs (instruments to consider, audio location, preprocess folder, sampling rate, model parameters...), then preprocess your data using 
+Edit `../config.yaml` file to fit your needs (instruments to consider, audio location, preprocess folder, sampling rate, model parameters...), then preprocess your data using 
 
 ```bash
 python -m train.preprocess
