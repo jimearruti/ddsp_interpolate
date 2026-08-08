@@ -8,6 +8,26 @@ generate:
     - finetuned_from_15k_for_30k
   instruments: [vn, fl, tpt]
 
+instrument_paths:
+  vn:
+    from_scratch:               runs/normalised_high_pass_from_scratch/20260728_102000/vn/state_15000.pth
+    finetuned_from_30k_for_30k: runs/normalised_high_pass_filter_finetuned/20260727_230936/vn/state_30000.pth
+    finetuned_from_30k_for_15k: runs/normalised_high_pass_filter_finetuned/20260727_230936/vn/state_15000.pth
+    finetuned_from_15k_for_30k: runs/normalised_high_pass_finetuned_from_15k/20260728_162012/vn/state_30000.pth
+    finetuned_from_15k_for_15k: runs/normalised_high_pass_finetuned_from_15k/20260728_162012/vn/state_15000.pth
+  fl:
+    from_scratch:               runs/normalised_high_pass_from_scratch/20260728_102000/fl/state_15000.pth
+    finetuned_from_30k_for_30k: runs/normalised_high_pass_filter_finetuned/20260727_230936/fl/state_30000.pth
+    finetuned_from_30k_for_15k: runs/normalised_high_pass_filter_finetuned/20260727_230936/fl/state_15000.pth
+    finetuned_from_15k_for_30k: runs/normalised_high_pass_finetuned_from_15k/20260728_162012/fl/state_30000.pth
+    finetuned_from_15k_for_15k: runs/normalised_high_pass_finetuned_from_15k/20260728_162012/fl/state_15000.pth
+  tpt:
+    from_scratch:               runs/normalised_high_pass_from_scratch/20260728_102000/tpt/state_15000.pth
+    finetuned_from_30k_for_30k: runs/normalised_high_pass_filter_finetuned/20260727_230936/tpt/state_30000.pth
+    finetuned_from_30k_for_15k: runs/normalised_high_pass_filter_finetuned/20260727_230936/tpt/state_15000.pth
+    finetuned_from_15k_for_30k: runs/normalised_high_pass_finetuned_from_15k/20260728_162012/tpt/state_30000.pth
+    finetuned_from_15k_for_15k: runs/normalised_high_pass_finetuned_from_15k/20260728_162012/tpt/state_15000.pth
+    
 postprocess:
   target_lufs: -24.0
 
@@ -72,22 +92,4 @@ postprocess:
         start_time: 24.798
         end_time: 30.317
 
-instrument_paths:
-  vn:
-    from_scratch:               runs/normalised_high_pass_from_scratch/20260728_102000/vn/state_15000.pth
-    finetuned_from_30k_for_30k: runs/normalised_high_pass_filter_finetuned/20260727_230936/vn/state_30000.pth
-    finetuned_from_30k_for_15k: runs/normalised_high_pass_filter_finetuned/20260727_230936/vn/state_15000.pth
-    finetuned_from_15k_for_30k: runs/normalised_high_pass_finetuned_from_15k/20260728_162012/vn/state_30000.pth
-    finetuned_from_15k_for_15k: runs/normalised_high_pass_finetuned_from_15k/20260728_162012/vn/state_15000.pth
-  fl:
-    from_scratch:               runs/normalised_high_pass_from_scratch/20260728_102000/fl/state_15000.pth
-    finetuned_from_30k_for_30k: runs/normalised_high_pass_filter_finetuned/20260727_230936/fl/state_30000.pth
-    finetuned_from_30k_for_15k: runs/normalised_high_pass_filter_finetuned/20260727_230936/fl/state_15000.pth
-    finetuned_from_15k_for_30k: runs/normalised_high_pass_finetuned_from_15k/20260728_162012/fl/state_30000.pth
-    finetuned_from_15k_for_15k: runs/normalised_high_pass_finetuned_from_15k/20260728_162012/fl/state_15000.pth
-  tpt:
-    from_scratch:               runs/normalised_high_pass_from_scratch/20260728_102000/tpt/state_15000.pth
-    finetuned_from_30k_for_30k: runs/normalised_high_pass_filter_finetuned/20260727_230936/tpt/state_30000.pth
-    finetuned_from_30k_for_15k: runs/normalised_high_pass_filter_finetuned/20260727_230936/tpt/state_15000.pth
-    finetuned_from_15k_for_30k: runs/normalised_high_pass_finetuned_from_15k/20260728_162012/tpt/state_30000.pth
-    finetuned_from_15k_for_15k: runs/normalised_high_pass_finetuned_from_15k/20260728_162012/tpt/state_15000.pth
+
