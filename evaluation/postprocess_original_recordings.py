@@ -12,18 +12,13 @@ from ddsp.utils import high_pass_filter
 
 class args(Config):
     CONFIG = "config.yaml"
-    GENERATE_CONFIG = "generate_config.yaml"
 
 args.parse_args()
 
 with open(args.CONFIG, "r") as config_file:
     config = yaml.safe_load(config_file)
 
-with open(args.GENERATE_CONFIG, "r") as config_file:
-    generate_config = yaml.safe_load(config_file)
-
 sampling_rate = config["preprocess"]["sampling_rate"]
-target_lufs = generate_config["postprocess"]["target_lufs"]
 
 results_folder = config["data"]["data_location"]
 normalised_results_folder = os.path.join(results_folder, "normalised")
