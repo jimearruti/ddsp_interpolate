@@ -1,0 +1,132 @@
+{
+    "background_path": "../data/URMP/Dataset/rearranged/train_tpt",
+    "resynth_paths": [
+        "../data/URMP/Dataset/rearranged/test_tpt",
+
+        "./results_reordered/finetuned_from_30k_for_30k/vn_tpt",
+        "./results_reordered/finetuned_from_30k_for_30k/tpt_vn",
+        "./results_reordered/finetuned_from_30k_for_30k/tpt_fl",
+        "./results_reordered/finetuned_from_30k_for_30k/fl_tpt",
+
+        "./results_reordered/finetuned_from_30k_for_15k/vn_tpt",
+        "./results_reordered/finetuned_from_30k_for_15k/tpt_vn",
+        "./results_reordered/finetuned_from_30k_for_15k/tpt_fl",
+        "./results_reordered/finetuned_from_30k_for_15k/fl_tpt",
+
+        "./results_reordered/finetuned_from_15k_for_15k/vn_tpt",
+        "./results_reordered/finetuned_from_15k_for_15k/tpt_vn",
+        "./results_reordered/finetuned_from_15k_for_15k/tpt_fl",
+        "./results_reordered/finetuned_from_15k_for_15k/fl_tpt",
+
+        "./results_reordered/finetuned_from_15k_for_30k/vn_tpt",
+        "./results_reordered/finetuned_from_15k_for_30k/tpt_vn",
+        "./results_reordered/finetuned_from_15k_for_30k/tpt_fl",
+        "./results_reordered/finetuned_from_15k_for_30k/fl_tpt",
+
+        "./results_reordered/finetuned_from_30k_for_30k/tpt",
+
+        "./results_reordered/finetuned_from_30k_for_30k/vn_tpt/alpha_0",
+        "./results_reordered/finetuned_from_30k_for_30k/vn_tpt/alpha_25",
+        "./results_reordered/finetuned_from_30k_for_30k/vn_tpt/alpha_50",
+        "./results_reordered/finetuned_from_30k_for_30k/vn_tpt/alpha_75",
+        "./results_reordered/finetuned_from_30k_for_30k/vn_tpt/alpha_100",
+
+        "./results_reordered/finetuned_from_30k_for_30k/tpt_vn/alpha_0",
+        "./results_reordered/finetuned_from_30k_for_30k/tpt_vn/alpha_25",
+        "./results_reordered/finetuned_from_30k_for_30k/tpt_vn/alpha_50",
+        "./results_reordered/finetuned_from_30k_for_30k/tpt_vn/alpha_75",
+        "./results_reordered/finetuned_from_30k_for_30k/tpt_vn/alpha_100",
+
+        "./results_reordered/finetuned_from_30k_for_30k/tpt_fl/alpha_0",
+        "./results_reordered/finetuned_from_30k_for_30k/tpt_fl/alpha_25",
+        "./results_reordered/finetuned_from_30k_for_30k/tpt_fl/alpha_50",
+        "./results_reordered/finetuned_from_30k_for_30k/tpt_fl/alpha_75",
+        "./results_reordered/finetuned_from_30k_for_30k/tpt_fl/alpha_100",
+
+        "./results_reordered/finetuned_from_30k_for_30k/fl_tpt/alpha_0",
+        "./results_reordered/finetuned_from_30k_for_30k/fl_tpt/alpha_25",
+        "./results_reordered/finetuned_from_30k_for_30k/fl_tpt/alpha_50",
+        "./results_reordered/finetuned_from_30k_for_30k/fl_tpt/alpha_75",
+        "./results_reordered/finetuned_from_30k_for_30k/fl_tpt/alpha_100",
+
+        "./results_reordered/finetuned_from_30k_for_15k/tpt",
+
+        "./results_reordered/finetuned_from_30k_for_15k/vn_tpt/alpha_0",
+        "./results_reordered/finetuned_from_30k_for_15k/vn_tpt/alpha_25",
+        "./results_reordered/finetuned_from_30k_for_15k/vn_tpt/alpha_50",
+        "./results_reordered/finetuned_from_30k_for_15k/vn_tpt/alpha_75",
+        "./results_reordered/finetuned_from_30k_for_15k/vn_tpt/alpha_100",
+
+        "./results_reordered/finetuned_from_30k_for_15k/tpt_vn/alpha_0",
+        "./results_reordered/finetuned_from_30k_for_15k/tpt_vn/alpha_25",
+        "./results_reordered/finetuned_from_30k_for_15k/tpt_vn/alpha_50",
+        "./results_reordered/finetuned_from_30k_for_15k/tpt_vn/alpha_75",
+        "./results_reordered/finetuned_from_30k_for_15k/tpt_vn/alpha_100",
+
+        "./results_reordered/finetuned_from_30k_for_15k/tpt_fl/alpha_0",
+        "./results_reordered/finetuned_from_30k_for_15k/tpt_fl/alpha_25",
+        "./results_reordered/finetuned_from_30k_for_15k/tpt_fl/alpha_50",
+        "./results_reordered/finetuned_from_30k_for_15k/tpt_fl/alpha_75",
+        "./results_reordered/finetuned_from_30k_for_15k/tpt_fl/alpha_100",
+
+        "./results_reordered/finetuned_from_30k_for_15k/fl_tpt/alpha_0",
+        "./results_reordered/finetuned_from_30k_for_15k/fl_tpt/alpha_25",
+        "./results_reordered/finetuned_from_30k_for_15k/fl_tpt/alpha_50",
+        "./results_reordered/finetuned_from_30k_for_15k/fl_tpt/alpha_75",
+        "./results_reordered/finetuned_from_30k_for_15k/fl_tpt/alpha_100",
+
+        "./results_reordered/finetuned_from_15k_for_15k/tpt",
+
+        "./results_reordered/finetuned_from_15k_for_15k/vn_tpt/alpha_0",
+        "./results_reordered/finetuned_from_15k_for_15k/vn_tpt/alpha_25",
+        "./results_reordered/finetuned_from_15k_for_15k/vn_tpt/alpha_50",
+        "./results_reordered/finetuned_from_15k_for_15k/vn_tpt/alpha_75",
+        "./results_reordered/finetuned_from_15k_for_15k/vn_tpt/alpha_100",
+
+        "./results_reordered/finetuned_from_15k_for_15k/tpt_vn/alpha_0",
+        "./results_reordered/finetuned_from_15k_for_15k/tpt_vn/alpha_25",
+        "./results_reordered/finetuned_from_15k_for_15k/tpt_vn/alpha_50",
+        "./results_reordered/finetuned_from_15k_for_15k/tpt_vn/alpha_75",
+        "./results_reordered/finetuned_from_15k_for_15k/tpt_vn/alpha_100",
+
+        "./results_reordered/finetuned_from_15k_for_15k/tpt_fl/alpha_0",
+        "./results_reordered/finetuned_from_15k_for_15k/tpt_fl/alpha_25",
+        "./results_reordered/finetuned_from_15k_for_15k/tpt_fl/alpha_50",
+        "./results_reordered/finetuned_from_15k_for_15k/tpt_fl/alpha_75",
+        "./results_reordered/finetuned_from_15k_for_15k/tpt_fl/alpha_100",
+
+        "./results_reordered/finetuned_from_15k_for_15k/fl_tpt/alpha_0",
+        "./results_reordered/finetuned_from_15k_for_15k/fl_tpt/alpha_25",
+        "./results_reordered/finetuned_from_15k_for_15k/fl_tpt/alpha_50",
+        "./results_reordered/finetuned_from_15k_for_15k/fl_tpt/alpha_75",
+        "./results_reordered/finetuned_from_15k_for_15k/fl_tpt/alpha_100",
+
+        "./results_reordered/finetuned_from_15k_for_30k/tpt",
+
+        "./results_reordered/finetuned_from_15k_for_30k/vn_tpt/alpha_0",
+        "./results_reordered/finetuned_from_15k_for_30k/vn_tpt/alpha_25",
+        "./results_reordered/finetuned_from_15k_for_30k/vn_tpt/alpha_50",
+        "./results_reordered/finetuned_from_15k_for_30k/vn_tpt/alpha_75",
+        "./results_reordered/finetuned_from_15k_for_30k/vn_tpt/alpha_100",
+
+        "./results_reordered/finetuned_from_15k_for_30k/tpt_vn/alpha_0",
+        "./results_reordered/finetuned_from_15k_for_30k/tpt_vn/alpha_25",
+        "./results_reordered/finetuned_from_15k_for_30k/tpt_vn/alpha_50",
+        "./results_reordered/finetuned_from_15k_for_30k/tpt_vn/alpha_75",
+        "./results_reordered/finetuned_from_15k_for_30k/tpt_vn/alpha_100",
+
+        "./results_reordered/finetuned_from_15k_for_30k/tpt_fl/alpha_0",
+        "./results_reordered/finetuned_from_15k_for_30k/tpt_fl/alpha_25",
+        "./results_reordered/finetuned_from_15k_for_30k/tpt_fl/alpha_50",
+        "./results_reordered/finetuned_from_15k_for_30k/tpt_fl/alpha_75",
+        "./results_reordered/finetuned_from_15k_for_30k/tpt_fl/alpha_100",
+
+        "./results_reordered/finetuned_from_15k_for_30k/fl_tpt/alpha_0",
+        "./results_reordered/finetuned_from_15k_for_30k/fl_tpt/alpha_25",
+        "./results_reordered/finetuned_from_15k_for_30k/fl_tpt/alpha_50",
+        "./results_reordered/finetuned_from_15k_for_30k/fl_tpt/alpha_75",
+        "./results_reordered/finetuned_from_15k_for_30k/fl_tpt/alpha_100",
+
+        "../data/URMP/Dataset/rearranged/test_tpt"
+    ]
+}
