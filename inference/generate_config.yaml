@@ -2,6 +2,7 @@ generate:
   results_dir: results
   alphas: [0.0, 0.25, 0.5, 0.75, 1.0]
   model_types:
+    - from_scratch
     - finetuned_from_30k_for_30k
     - finetuned_from_30k_for_15k
     - finetuned_from_15k_for_15k
