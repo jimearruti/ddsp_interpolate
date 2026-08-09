@@ -1,10 +1,10 @@
 # Timbre interpolation with Differentiable Digital Signal Processing
 
-This code is based on the implementation of the [DDSP model](https://github.com/magenta/ddsp) in PyTorch [made by ACIDS-IRCAM](https://github.com/acids-ircam/ddsp_pytorch).
-
-The original code was modified to use the [UMRP Dataset](https://labsites.rochester.edu/air/projects/URMP.html), which consists of several subfolders with different instruments. This structure of folders is assumed for preprocessing and training.
+This code started as a fork of the implementation of the [DDSP model](https://github.com/magenta/ddsp) in PyTorch [made by ACIDS-IRCAM](https://github.com/acids-ircam/ddsp_pytorch). It was modified to use the [UMRP Dataset](https://labsites.rochester.edu/air/projects/URMP.html), which consists of several subfolders with different instruments. This structure of folders is assumed for preprocessing and training.
 
 This repository is tailored for offline interpolation between instruments, and realtime considerations were left for future work.
+
+Evaluation is done using the code from [BRAVE](https://github.com/fcaspe/BRAVE)
 
 ## Setup
 
