@@ -15,7 +15,7 @@ The normalised and filtered audio will be stored by default in `<original_datase
 Since the metric requires to group audio in folders, the dataset can be reordered with:
 
 ```
-python -m evaluation.reorder_dataset <split_json> <source_root> <dest_root>
+python -m evaluation.reorder_dataset <split_json> <normalised_dataset_source_root> <dest_root>
 ```
 
 This will reorganise the dataset as needed, generating folders per split and instrument instead of dividing by pieces. Results will be saved on `<dest_root>` accordingly,
