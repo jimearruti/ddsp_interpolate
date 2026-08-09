@@ -4,11 +4,6 @@
         "../data/URMP/Dataset/rearranged/test_vn",
                 
         "./results_reordered/finetuned_from_30k_for_30k/vn",
-        
-        "./results_reordered/finetuned_from_30k_for_30k/output/vn_tpt/with_reverb",
-        "./results_reordered/finetuned_from_30k_for_30k/output/tpt_vn/with_reverb",
-        "./results_reordered/finetuned_from_30k_for_30k/output/vn_fl/with_reverb",
-        "./results_reordered/finetuned_from_30k_for_30k/output/fl_vn/with_reverb",
 
         "./results_reordered/finetuned_from_30k_for_30k/output/vn_tpt/alpha_0/with_reverb",
         "./results_reordered/finetuned_from_30k_for_30k/output/vn_tpt/alpha_25/with_reverb",
@@ -33,11 +28,6 @@
         "./results_reordered/finetuned_from_30k_for_30k/output/fl_vn/alpha_50/with_reverb",
         "./results_reordered/finetuned_from_30k_for_30k/output/fl_vn/alpha_75/with_reverb",
         "./results_reordered/finetuned_from_30k_for_30k/output/fl_vn/alpha_100/with_reverb",
-
-        "./results_reordered/finetuned_from_30k_for_30k/weights/vn_tpt/with_reverb",
-        "./results_reordered/finetuned_from_30k_for_30k/weights/tpt_vn/with_reverb",
-        "./results_reordered/finetuned_from_30k_for_30k/weights/vn_fl/with_reverb",
-        "./results_reordered/finetuned_from_30k_for_30k/weights/fl_vn/with_reverb",
 
         "./results_reordered/finetuned_from_30k_for_30k/weights/vn_tpt/alpha_0/with_reverb",
         "./results_reordered/finetuned_from_30k_for_30k/weights/vn_tpt/alpha_25/with_reverb",
