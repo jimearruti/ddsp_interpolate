@@ -29,6 +29,11 @@ PATTERNS = [
         rf"interpolated_(?P<method>output|weights)_(?P<i1>[a-z]+)_(?P<i2>[a-z]+)_"
         rf"(?P<model>{MODEL})_alpha_(?P<alpha>\d+)_(?P<reverb>with|without)_reverb\.wav$"
     ),
+    # sweep_output_/sweep_weights_ + pair + model + reverb (no alpha)
+    re.compile(
+        rf"sweep_(?P<method>output|weights)_(?P<i1>[a-z]+)_(?P<i2>[a-z]+)_"
+        rf"(?P<model>{MODEL})_(?P<reverb>with|without)_reverb\.wav$"
+    ),
     # single-instrument synthesis wav
     re.compile(rf"_(?P<inst>[a-z]+)_(?P<model>{MODEL})\.wav$"),
 ]
@@ -45,6 +50,8 @@ def classify(filename):
             # keep original order: alpha's meaning depends on which instrument is first
             pair = f"{g['i1']}_{g['i2']}"
             method = g["method"]
+            if "sweep" in pattern.pattern:
+                method = f"{method}/sweep"
             reverb = f"{g['reverb']}_reverb"
         else:
             pair = g["inst"]
