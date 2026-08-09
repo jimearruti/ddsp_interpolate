@@ -7,5 +7,7 @@
         "./results_reordered/finetuned_from_15k_for_15k/flattened",
         "./results_reordered/from_scratch/flattened",
         "../data/URMP/Dataset/rearranged/test"
-    ]
+    ],
+    "csv_path": "fad_global_finetuned_from_30k_for_30k.csv"
+
 }
