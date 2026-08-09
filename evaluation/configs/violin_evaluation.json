@@ -52,6 +52,5 @@
         "./results_reordered/finetuned_from_30k_for_30k/weights/fl_vn/alpha_50/with_reverb",
         "./results_reordered/finetuned_from_30k_for_30k/weights/fl_vn/alpha_75/with_reverb",
         "./results_reordered/finetuned_from_30k_for_30k/weights/fl_vn/alpha_100/with_reverb"
-    ],
-    "csv_path": "fad_vn_finetuned_from_30k_for_30k.csv"
+    ]
 }

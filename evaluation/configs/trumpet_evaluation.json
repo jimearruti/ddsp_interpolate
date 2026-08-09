@@ -52,7 +52,6 @@
         "./results_reordered/finetuned_from_30k_for_30k/weights/fl_tpt/alpha_50/with_reverb",
         "./results_reordered/finetuned_from_30k_for_30k/weights/fl_tpt/alpha_75/with_reverb",
         "./results_reordered/finetuned_from_30k_for_30k/weights/fl_tpt/alpha_100/with_reverb"
-    ],
-    "csv_path": "fad_tpt_finetuned_from_30k_for_30k.csv"
+    ]
 
 }
