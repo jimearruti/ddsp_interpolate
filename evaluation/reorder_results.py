@@ -1,23 +1,23 @@
-"""Reorganize a results folder into
-results_reordered/{model}/[output|weights]/{instrument(s)}/[alpha_X]/[with|without_reverb]/file.
+"""Reorganize a results folder into:
 
-Original layout: results/<piece_folder>/<various files>.wav|.json
-New layout (single-instrument synthesis):
-    results_reordered/<model>/<instrument>/<original filename>
-New layout (interpolation, output-space or weight-space):
-    results_reordered/<model>/<output|weights>/<instrument_pair>/alpha_<value>/<with|without>_reverb/<original filename>
+results_reordered/<model>/resynthesis/<instrument>/<file>
+results_reordered/<model>/<output|weights>/<instrument_pair>/alpha_<value>/<file>   (one folder per alpha value)
+results_reordered/<model>/<output|weights>/<instrument_pair>/intermediate_alphas/<file>   (all alphas except 0/100, grouped)
+results_reordered/<model>/<output|weights>/flattened/alpha_<value>/<pair>__<file>
+results_reordered/<model>/<output|weights>/flattened/intermediate_alphas/<pair>__<file>
+results_reordered/<model>/<output|weights>/unordered_pairs/<sorted_pair>/intermediate_alphas/<pair>__<file>
+results_reordered/<model>/<output|weights>/extremes/<instrument>/<pair>__<file>
 
-Files with "_sweep_" in the name are skipped entirely.
-
-Also creates a "flattened" subfolder inside each model's folder
-(results_reordered/<model>/flattened) containing all of that model's files
-directly, with the source piece folder name prefixed to avoid filename
-collisions.
-
-For interpolation files, also creates an "all_alphas" subfolder per pair
-(results_reordered/<model>/<output|weights>/<instrument_pair>/all_alphas/<with|without>_reverb)
-gathering every alpha for that pair/method/reverb combination together,
-so all audios for a given interpolation can be browsed regardless of alpha.
+Rules:
+- Files with "_sweep_" in the name are skipped entirely.
+- Only "with_reverb" interpolation files are kept; "without_reverb" files are skipped.
+- Every alpha value gets its own folder; alpha values other than 0/100 are additionally
+  grouped together under "intermediate_alphas".
+- "unordered_pairs" merges both orderings of a pair (e.g. fl_tpt and tpt_fl) into one
+  folder keyed by the sorted instrument names, for intermediate alphas only.
+- "extremes" groups alpha_0/alpha_100 files by the pure instrument they correspond to
+  (e.g. fl_tpt's alpha_0 and tpt_fl's alpha_100 are both pure fl, so both land under
+  extremes/fl), regardless of which pair/order produced them.
 
 Usage:
     python reorder_results.py <src_results_dir> <dst_results_dir>
@@ -49,19 +49,31 @@ def classify(filename):
         g = m.groupdict()
         model = g["model"]
         if "i1" in g:
-            # keep original order: alpha's meaning depends on which instrument is first
             pair = f"{g['i1']}_{g['i2']}"
             method = g["method"]
-            reverb = f"{g['reverb']}_reverb"
+            reverb = g["reverb"]
+            alpha = g["alpha"]
+            i1, i2 = g["i1"], g["i2"]
         else:
             pair = g["inst"]
             method = None
             reverb = None
-        alpha_dir = None
-        if g.get("alpha") is not None:
-            alpha_dir = f"alpha_{g['alpha']}"
-        return model, method, pair, alpha_dir, reverb
+            alpha = None
+            i1, i2 = None, None
+        return model, method, pair, alpha, reverb, i1, i2
     return None
+
+
+def extreme_instrument(alpha, i1, i2):
+    if alpha == "0":
+        return i1
+    if alpha == "100":
+        return i2
+    return None
+
+
+def is_intermediate(alpha):
+    return alpha not in ("0", "100")
 
 
 def main():
@@ -72,6 +84,7 @@ def main():
     args = ap.parse_args()
 
     unmatched = []
+    skipped_without_reverb = 0
     count = 0
 
     for piece_dir in sorted(args.src.iterdir()):
@@ -86,45 +99,70 @@ def main():
             if result is None:
                 unmatched.append(f)
                 continue
-            model, method, pair, alpha_dir, reverb = result
-            parts = [args.dst, model]
-            if method:
-                parts.append(method)
-            parts.append(pair)
-            if alpha_dir:
-                parts.append(alpha_dir)
-            if reverb:
-                parts.append(reverb)
-            out_dir = Path(*parts)
-            out_dir.mkdir(parents=True, exist_ok=True)
-            out_path = out_dir / f.name
+            model, method, pair, alpha, reverb, i1, i2 = result
 
-            flat_dst = args.dst / model / "flattened"
-            flat_dst.mkdir(parents=True, exist_ok=True)
-            flat_path = flat_dst / f"{piece_dir.name}__{f.name}"
+            if method is not None:
+                # interpolation file
+                if reverb == "without":
+                    skipped_without_reverb += 1
+                    continue
 
-            all_alphas_path = None
-            alpha_value = alpha_dir.split("_")[1] if alpha_dir else None
-            if method and reverb and alpha_dir and alpha_value not in ("0", "100"):
-                pair_key = "_".join(sorted(pair.split("_")))
-                all_alphas_dir = args.dst / model / method / pair_key / "all_alphas" / reverb
-                all_alphas_dir.mkdir(parents=True, exist_ok=True)
-                all_alphas_path = all_alphas_dir / f.name
+                alpha_folder = f"alpha_{alpha}"
 
-            if args.move:
-                shutil.copy2(f, flat_path)
-                if all_alphas_path:
-                    shutil.copy2(f, all_alphas_path)
-                shutil.move(str(f), str(out_path))
+                out_dir = args.dst / model / method / pair / alpha_folder
+                out_dir.mkdir(parents=True, exist_ok=True)
+                out_path = out_dir / f.name
+
+                flat_dir = args.dst / model / method / "flattened" / alpha_folder
+                flat_dir.mkdir(parents=True, exist_ok=True)
+                flat_path = flat_dir / f"{pair}__{f.name}"
+
+                extra_paths = [flat_path]
+                if is_intermediate(alpha):
+                    inter_dir = args.dst / model / method / pair / "intermediate_alphas"
+                    inter_dir.mkdir(parents=True, exist_ok=True)
+                    extra_paths.append(inter_dir / f.name)
+
+                    inter_flat_dir = args.dst / model / method / "flattened" / "intermediate_alphas"
+                    inter_flat_dir.mkdir(parents=True, exist_ok=True)
+                    extra_paths.append(inter_flat_dir / f"{pair}__{f.name}")
+
+                    sorted_pair = "_".join(sorted(pair.split("_")))
+                    unordered_dir = (
+                        args.dst / model / method / "unordered_pairs" / sorted_pair / "intermediate_alphas"
+                    )
+                    unordered_dir.mkdir(parents=True, exist_ok=True)
+                    extra_paths.append(unordered_dir / f"{pair}__{f.name}")
+                else:
+                    instrument = extreme_instrument(alpha, i1, i2)
+                    extremes_dir = args.dst / model / method / "extremes" / instrument
+                    extremes_dir.mkdir(parents=True, exist_ok=True)
+                    extra_paths.append(extremes_dir / f"{pair}__{f.name}")
+
+                if args.move:
+                    for p in extra_paths:
+                        shutil.copy2(f, p)
+                    shutil.move(str(f), str(out_path))
+                else:
+                    shutil.copy2(f, out_path)
+                    for p in extra_paths:
+                        shutil.copy2(f, p)
             else:
-                shutil.copy2(f, out_path)
-                shutil.copy2(f, flat_path)
-                if all_alphas_path:
-                    shutil.copy2(f, all_alphas_path)
+                # single-instrument resynthesis file
+                out_dir = args.dst / model / "resynthesis" / pair
+                out_dir.mkdir(parents=True, exist_ok=True)
+                out_path = out_dir / f.name
+
+                if args.move:
+                    shutil.move(str(f), str(out_path))
+                else:
+                    shutil.copy2(f, out_path)
+
             count += 1
 
     print(f"Processed {count} files.")
-    print(f"Flattened copies written to {args.dst}/<model>/flattened")
+    if skipped_without_reverb:
+        print(f"Skipped {skipped_without_reverb} without_reverb files.")
     if unmatched:
         print(f"WARNING: {len(unmatched)} files did not match any pattern:")
         for f in unmatched:
