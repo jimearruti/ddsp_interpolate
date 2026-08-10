@@ -12,6 +12,11 @@ Also creates a "flattened" subfolder inside each model's folder
 directly, with the source piece folder name prefixed to avoid filename
 collisions.
 
+For interpolation files, also creates an "all_alphas" subfolder per pair
+(results_reordered/<model>/<output|weights>/<instrument_pair>/all_alphas/<with|without>_reverb)
+gathering every alpha for that pair/method/reverb combination together,
+so all audios for a given interpolation can be browsed regardless of alpha.
+
 Usage:
     python reorder_results.py <src_results_dir> <dst_results_dir>
 """
@@ -101,12 +106,24 @@ def main():
             flat_dst.mkdir(parents=True, exist_ok=True)
             flat_path = flat_dst / f"{piece_dir.name}__{f.name}"
 
+            all_alphas_path = None
+            if method and reverb and alpha_dir:
+                # method may be "output" or "weights/sweep" - keep only output/weights for grouping
+                method_top = method.split("/")[0]
+                all_alphas_dir = args.dst / model / method_top / pair / "all_alphas" / reverb
+                all_alphas_dir.mkdir(parents=True, exist_ok=True)
+                all_alphas_path = all_alphas_dir / f.name
+
             if args.move:
                 shutil.copy2(f, flat_path)
+                if all_alphas_path:
+                    shutil.copy2(f, all_alphas_path)
                 shutil.move(str(f), str(out_path))
             else:
                 shutil.copy2(f, out_path)
                 shutil.copy2(f, flat_path)
+                if all_alphas_path:
+                    shutil.copy2(f, all_alphas_path)
             count += 1
 
     print(f"Processed {count} files.")
