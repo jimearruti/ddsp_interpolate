@@ -1,0 +1,12 @@
+{
+    "background_path": "../data/URMP/Dataset/rearranged/train_tpt",
+    "resynth_paths": [
+        "../data/URMP/Dataset/rearranged/test_tpt",
+        "./results_reordered/finetuned_from_30k_for_30k/tpt",
+        "./results_reordered/finetuned_from_30k_for_30k/weights/fl_tpt",
+        "./results_reordered/finetuned_from_30k_for_30k/weights/tpt_vn",
+        "./results_reordered/finetuned_from_30k_for_30k/output/fl_tpt",
+        "./results_reordered/finetuned_from_30k_for_30k/output/tpt_vn"
+    ]
+
+}
