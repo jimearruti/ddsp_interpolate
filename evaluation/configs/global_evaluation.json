@@ -1,9 +1,10 @@
 {
     "background_path": "../data/URMP/Dataset/rearranged/train",
     "resynth_paths": [
-        "./results_reordered/finetuned_from_30k_for_30k/flattened",
-        "./results_reordered/finetuned_from_30k_for_15k/flattened",
-        "./results_reordered/from_scratch/flattened",
+        "./results_reordered/finetuned_from_30k_for_30k/output/all",
+        "./results_reordered/finetuned_from_30k_for_30k/weights/all",
+        "./results_reordered/from_scratch/output/all",
+        "./results_reordered/from_scratch/weights/all",
         "../data/URMP/Dataset/rearranged/test"
     ]
 
