@@ -3,8 +3,6 @@
 results_reordered/<model>/resynthesis/<instrument>/<file>
 results_reordered/<model>/<output|weights>/<instrument_pair>/alpha_<value>/<file>   (one folder per alpha value)
 results_reordered/<model>/<output|weights>/<instrument_pair>/intermediate_alphas/<file>   (all alphas except 0/100, grouped)
-results_reordered/<model>/<output|weights>/flattened/alpha_<value>/<pair>__<file>
-results_reordered/<model>/<output|weights>/flattened/intermediate_alphas/<pair>__<file>
 results_reordered/<model>/<output|weights>/unordered_pairs/<sorted_pair>/intermediate_alphas/<pair>__<file>
 results_reordered/<model>/<output|weights>/extremes/<instrument>/<pair>__<file>
 
@@ -113,19 +111,11 @@ def main():
                 out_dir.mkdir(parents=True, exist_ok=True)
                 out_path = out_dir / f.name
 
-                flat_dir = args.dst / model / method / "flattened" / alpha_folder
-                flat_dir.mkdir(parents=True, exist_ok=True)
-                flat_path = flat_dir / f"{pair}__{f.name}"
-
-                extra_paths = [flat_path]
+                extra_paths = []
                 if is_intermediate(alpha):
                     inter_dir = args.dst / model / method / pair / "intermediate_alphas"
                     inter_dir.mkdir(parents=True, exist_ok=True)
                     extra_paths.append(inter_dir / f.name)
-
-                    inter_flat_dir = args.dst / model / method / "flattened" / "intermediate_alphas"
-                    inter_flat_dir.mkdir(parents=True, exist_ok=True)
-                    extra_paths.append(inter_flat_dir / f"{pair}__{f.name}")
 
                     sorted_pair = "_".join(sorted(pair.split("_")))
                     unordered_dir = (

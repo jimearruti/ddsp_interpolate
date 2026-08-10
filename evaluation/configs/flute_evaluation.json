@@ -3,7 +3,7 @@
     "resynth_paths": [
         "../data/URMP/Dataset/rearranged/test_fl",
 
-        "./results_reordered/finetuned_from_30k_for_30k/fl",
+        "./results_reordered/finetuned_from_30k_for_30k/resynthesis/fl",
 
         "./results_reordered/finetuned_from_30k_for_30k/output/fl_tpt/alpha_0/with_reverb",
         "./results_reordered/finetuned_from_30k_for_30k/output/fl_tpt/alpha_25/with_reverb",

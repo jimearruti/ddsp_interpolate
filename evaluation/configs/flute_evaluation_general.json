@@ -2,10 +2,15 @@
     "background_path": "../data/URMP/Dataset/rearranged/train_fl",
     "resynth_paths": [
         "../data/URMP/Dataset/rearranged/test_fl",
-        "./results_reordered/finetuned_from_30k_for_30k/fl",
-        "./results_reordered/finetuned_from_30k_for_30k/weights/fl_tpt/all_alphas/without_reverb",
-        "./results_reordered/finetuned_from_30k_for_30k/weights/fl_vn/all_alphas/without_reverb",
-        "./results_reordered/finetuned_from_30k_for_30k/output/fl_tpt/all_alphas/without_reverb",
-        "./results_reordered/finetuned_from_30k_for_30k/output/fl_vn/all_alphas/without_reverb"
+        "./results_reordered/finetuned_from_30k_for_30k/resynthesis/fl",
+        "./results_reordered/finetuned_from_30k_for_30k/resynthesis/vn",
+        "./results_reordered/finetuned_from_30k_for_30k/resynthesis/tpt",
+        "./results_reordered/finetuned_from_30k_for_30k/weights/extremes/fl",
+        "./results_reordered/finetuned_from_30k_for_30k/weights/unordered_pairs/fl_tpt/intermediate_alphas",
+        "./results_reordered/finetuned_from_30k_for_30k/weights/unordered_pairs/fl_vn/intermediate_alphas",
+        "./results_reordered/finetuned_from_30k_for_30k/output/extremes/fl",
+        "./results_reordered/finetuned_from_30k_for_30k/output/unordered_pairs/fl_tpt/intermediate_alphas",
+        "./results_reordered/finetuned_from_30k_for_30k/output/unordered_pairs/fl_vn/intermediate_alphas"
+
     ]
 }
