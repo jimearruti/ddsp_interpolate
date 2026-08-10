@@ -3,9 +3,9 @@
     "resynth_paths": [
         "../data/URMP/Dataset/rearranged/test_fl",
         "./results_reordered/finetuned_from_30k_for_30k/fl",
-        "./results_reordered/finetuned_from_30k_for_30k/weights/fl_tpt",
-        "./results_reordered/finetuned_from_30k_for_30k/weights/fl_vn",
-        "./results_reordered/finetuned_from_30k_for_30k/output/fl_tpt",
-        "./results_reordered/finetuned_from_30k_for_30k/output/fl_vn"
+        "./results_reordered/finetuned_from_30k_for_30k/weights/fl_tpt/all_alphas/without_reverb",
+        "./results_reordered/finetuned_from_30k_for_30k/weights/fl_vn/all_alphas/without_reverb",
+        "./results_reordered/finetuned_from_30k_for_30k/output/fl_tpt/all_alphas/without_reverb",
+        "./results_reordered/finetuned_from_30k_for_30k/output/fl_vn/all_alphas/without_reverb"
     ]
 }
