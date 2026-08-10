@@ -104,7 +104,8 @@ def main():
             flat_path = flat_dst / f"{piece_dir.name}__{f.name}"
 
             all_alphas_path = None
-            if method and reverb and alpha_dir:
+            alpha_value = alpha_dir.split("_")[1] if alpha_dir else None
+            if method and reverb and alpha_dir and alpha_value not in ("0", "100"):
                 pair_key = "_".join(sorted(pair.split("_")))
                 all_alphas_dir = args.dst / model / method / pair_key / "all_alphas" / reverb
                 all_alphas_dir.mkdir(parents=True, exist_ok=True)
