@@ -7,6 +7,8 @@ New layout (single-instrument synthesis):
 New layout (interpolation, output-space or weight-space):
     results_reordered/<model>/<output|weights>/<instrument_pair>/alpha_<value>/<with|without>_reverb/<original filename>
 
+Files with "_sweep_" in the name are skipped entirely.
+
 Also creates a "flattened" subfolder inside each model's folder
 (results_reordered/<model>/flattened) containing all of that model's files
 directly, with the source piece folder name prefixed to avoid filename
@@ -34,11 +36,6 @@ PATTERNS = [
         rf"interpolated_(?P<method>output|weights)_(?P<i1>[a-z]+)_(?P<i2>[a-z]+)_"
         rf"(?P<model>{MODEL})_alpha_(?P<alpha>\d+)_(?P<reverb>with|without)_reverb\.wav$"
     ),
-    # sweep_output_/sweep_weights_ + pair + model + reverb (no alpha)
-    re.compile(
-        rf"sweep_(?P<method>output|weights)_(?P<i1>[a-z]+)_(?P<i2>[a-z]+)_"
-        rf"(?P<model>{MODEL})_(?P<reverb>with|without)_reverb\.wav$"
-    ),
     # single-instrument synthesis wav
     re.compile(rf"_(?P<inst>[a-z]+)_(?P<model>{MODEL})\.wav$"),
 ]
@@ -55,8 +52,6 @@ def classify(filename):
             # keep original order: alpha's meaning depends on which instrument is first
             pair = f"{g['i1']}_{g['i2']}"
             method = g["method"]
-            if "sweep" in pattern.pattern:
-                method = f"{method}/sweep"
             reverb = f"{g['reverb']}_reverb"
         else:
             pair = g["inst"]
@@ -85,6 +80,8 @@ def main():
         for f in sorted(piece_dir.iterdir()):
             if not f.is_file() or f.suffix != ".wav":
                 continue
+            if "_sweep_" in f.name:
+                continue
             result = classify(f.name)
             if result is None:
                 unmatched.append(f)
@@ -108,10 +105,8 @@ def main():
 
             all_alphas_path = None
             if method and reverb and alpha_dir:
-                # method may be "output" or "weights/sweep" - keep only output/weights for grouping
-                method_top = method.split("/")[0]
                 pair_key = "_".join(sorted(pair.split("_")))
-                all_alphas_dir = args.dst / model / method_top / pair_key / "all_alphas" / reverb
+                all_alphas_dir = args.dst / model / method / pair_key / "all_alphas" / reverb
                 all_alphas_dir.mkdir(parents=True, exist_ok=True)
                 all_alphas_path = all_alphas_dir / f.name
 
