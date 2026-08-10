@@ -15,7 +15,12 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
 
 # Matches: .../output/vn_tpt/alpha_50/with_reverb  or  .../weights/tpt_fl/alpha_0/with_reverb
 ALPHA_RE = re.compile(
-    r"/(output|weights)/([a-z]+_[a-z]+)/alpha_(\d+)/with_reverb/?$"
+    r"/(output|weights)/([a-z]+_[a-z]+)/alpha_(\d+)/(with_reverb|without_reverb)/?$"
+)
+
+# Matches: .../weights/fl_tpt/all_alphas/without_reverb  or  .../output/fl_vn/all_alphas/with_reverb
+ALL_ALPHAS_RE = re.compile(
+    r"/(output|weights)/([a-z]+_[a-z]+)/all_alphas/(with_reverb|without_reverb)/?$"
 )
 
 
@@ -30,8 +35,14 @@ def parse_row(reference, path, distance):
     # Alpha-sweep interpolation output, e.g. .../output/vn_tpt/alpha_50/with_reverb
     match = ALPHA_RE.search(path)
     if match:
-        method, pair, alpha = match.groups()
+        method, pair, alpha, _reverb = match.groups()
         return (reference, pair, method, alpha, distance)
+
+    # All-alphas-combined interpolation output, e.g. .../weights/fl_tpt/all_alphas/without_reverb
+    match = ALL_ALPHAS_RE.search(path)
+    if match:
+        method, pair, _reverb = match.groups()
+        return (reference, pair, method, "all", distance)
 
     # Plain resynthesis, e.g. .../finetuned_from_30k_for_30k/vn
     return (reference, "resynthesis", "-", "-", distance)
