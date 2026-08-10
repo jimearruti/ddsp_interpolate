@@ -20,7 +20,6 @@ Usage:
     python reorder_dataset_per_split.py <split_json> <source_root> <dest_root>
 """
 import argparse
-import itertools
 import json
 import shutil
 from pathlib import Path
