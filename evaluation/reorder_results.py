@@ -1,10 +1,12 @@
 """Reorganize a results folder into:
 
 results_reordered/<model>/resynthesis/<instrument>/<file>
+results_reordered/<model>/resynthesis/all/<file>
 results_reordered/<model>/<output|weights>/<instrument_pair>/alpha_<value>/<file>   (one folder per alpha value)
 results_reordered/<model>/<output|weights>/<instrument_pair>/intermediate_alphas/<file>   (all alphas except 0/100, grouped)
 results_reordered/<model>/<output|weights>/unordered_pairs/<sorted_pair>/intermediate_alphas/<pair>__<file>
 results_reordered/<model>/<output|weights>/extremes/<instrument>/<pair>__<file>
+results_reordered/<model>/<output|weights>/all/<pair>__<file>
 
 Rules:
 - Files with "_sweep_" in the name are skipped entirely.
@@ -16,6 +18,8 @@ Rules:
 - "extremes" groups alpha_0/alpha_100 files by the pure instrument they correspond to
   (e.g. fl_tpt's alpha_0 and tpt_fl's alpha_100 are both pure fl, so both land under
   extremes/fl), regardless of which pair/order produced them.
+- "all" collects every file for that category (resynthesis, output, or weights) into a
+  single flat folder, alongside the other groupings.
 
 Usage:
     python reorder_results.py <src_results_dir> <dst_results_dir>
@@ -111,7 +115,9 @@ def main():
                 out_dir.mkdir(parents=True, exist_ok=True)
                 out_path = out_dir / f.name
 
-                extra_paths = []
+                all_dir = args.dst / model / method / "all"
+                all_dir.mkdir(parents=True, exist_ok=True)
+                extra_paths = [all_dir / f"{pair}__{f.name}"]
                 if is_intermediate(alpha):
                     inter_dir = args.dst / model / method / pair / "intermediate_alphas"
                     inter_dir.mkdir(parents=True, exist_ok=True)
@@ -143,10 +149,16 @@ def main():
                 out_dir.mkdir(parents=True, exist_ok=True)
                 out_path = out_dir / f.name
 
+                all_dir = args.dst / model / "resynthesis" / "all"
+                all_dir.mkdir(parents=True, exist_ok=True)
+                all_path = all_dir / f.name
+
                 if args.move:
+                    shutil.copy2(f, all_path)
                     shutil.move(str(f), str(out_path))
                 else:
                     shutil.copy2(f, out_path)
+                    shutil.copy2(f, all_path)
 
             count += 1
 
