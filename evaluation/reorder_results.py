@@ -110,7 +110,8 @@ def main():
             if method and reverb and alpha_dir:
                 # method may be "output" or "weights/sweep" - keep only output/weights for grouping
                 method_top = method.split("/")[0]
-                all_alphas_dir = args.dst / model / method_top / pair / "all_alphas" / reverb
+                pair_key = "_".join(sorted(pair.split("_")))
+                all_alphas_dir = args.dst / model / method_top / pair_key / "all_alphas" / reverb
                 all_alphas_dir.mkdir(parents=True, exist_ok=True)
                 all_alphas_path = all_alphas_dir / f.name
 
