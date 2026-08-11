@@ -50,6 +50,12 @@ Then run
 python -m evaluation.fad <config.json>
 ```
 
+### MMD
 
+To calculate MMD you can use the same approach described for FAD, but run
+
+```
+python -m evaluation.mmd <config.json>
+```
 
 
