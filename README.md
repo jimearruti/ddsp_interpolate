@@ -34,6 +34,6 @@ This code started as a fork of the implementation of the [DDSP model](https://gi
 
 The dataset used for experiments was the [UMRP Dataset](https://labsites.rochester.edu/air/projects/URMP.html), which consists of several subfolders with different instruments.
 
-Evaluation is done using the code from [BRAVE](https://github.com/fcaspe/BRAVE)
+Evaluation is based on code from [BRAVE](https://github.com/fcaspe/BRAVE)
 
 
