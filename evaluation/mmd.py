@@ -1,13 +1,3 @@
-"""Compute nas-eval's timbre MMD for the same background/resynth path layout used by fad.py.
-
-nas-eval's `timbre` command (non --matrix mode) just computes MMD between two arbitrary
-folders of wavs -- same as FrechetAudioDistance.score(background_path, resynth_path) in
-fad.py. So this reuses the exact same config format (background_path + resynth_paths)
-and the same parse_resynth_path CSV layout, without needing any directory restructuring.
-
-Requires: pip install nas-eval  (git clone https://github.com/jorshi/nas-eval && pip install .)
-"""
-
 import csv
 import json
 import logging
@@ -17,7 +7,7 @@ import sys
 from nas_eval.common import load_audio_files
 from nas_eval.timbre.mmd import compute_mfcc_features, MMD
 
-from .fad import CSV_FIELDS, parse_resynth_path
+from .resynth_path_parsing import CSV_FIELDS, parse_resynth_path
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
 
