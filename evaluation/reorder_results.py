@@ -1,11 +1,13 @@
 """Reorganize a results folder into:
 
 results_reordered/<model>/resynthesis/<instrument>/<file>
+results_reordered/<model>/resynthesis/<sorted_pair>/<file>
 results_reordered/<model>/resynthesis/all/<file>
 results_reordered/<model>/<output|weights>/<instrument_pair>/alpha_<value>/<file>   (one folder per alpha value)
 results_reordered/<model>/<output|weights>/<instrument_pair>/intermediate_alphas/<file>   (all alphas except 0/100, grouped)
 results_reordered/<model>/<output|weights>/unordered_pairs/<sorted_pair>/intermediate_alphas/<pair>__<file>
 results_reordered/<model>/<output|weights>/extremes/<instrument>/<pair>__<file>
+results_reordered/<model>/<output|weights>/extremes/<sorted_pair>/<pair>__<file>
 results_reordered/<model>/<output|weights>/all/<pair>__<file>
 
 Rules:
@@ -17,9 +19,13 @@ Rules:
   folder keyed by the sorted instrument names, for intermediate alphas only.
 - "extremes" groups alpha_0/alpha_100 files by the pure instrument they correspond to
   (e.g. fl_tpt's alpha_0 and tpt_fl's alpha_100 are both pure fl, so both land under
-  extremes/fl), regardless of which pair/order produced them.
+  extremes/fl), regardless of which pair/order produced them. They are additionally
+  grouped by the sorted (unordered) pair that produced them, under
+  extremes/<sorted_pair>.
 - "all" collects every file for that category (resynthesis, output, or weights) into a
   single flat folder, alongside the other groupings.
+- resynthesis files are additionally grouped under resynthesis/<sorted_pair> for every
+  instrument pair (seen anywhere in the source dir) that the file's instrument belongs to.
 
 Usage:
     python reorder_results.py <src_results_dir> <dst_results_dir>
@@ -89,6 +95,25 @@ def main():
     skipped_without_reverb = 0
     count = 0
 
+    # First pass: collect, per model, the set of unordered instrument pairs
+    # that actually occur (from interpolation filenames), so resynthesis
+    # files can later be grouped by every pair their instrument belongs to.
+    pairs_by_model = {}
+    for piece_dir in sorted(args.src.iterdir()):
+        if not piece_dir.is_dir():
+            continue
+        for f in sorted(piece_dir.iterdir()):
+            if not f.is_file() or f.suffix != ".wav" or "_sweep_" in f.name:
+                continue
+            result = classify(f.name)
+            if result is None:
+                continue
+            model, method, pair, alpha, reverb, i1, i2 = result
+            if method is None:
+                continue
+            sorted_pair = "_".join(sorted((i1, i2)))
+            pairs_by_model.setdefault(model, set()).add(sorted_pair)
+
     for piece_dir in sorted(args.src.iterdir()):
         if not piece_dir.is_dir():
             continue
@@ -110,6 +135,7 @@ def main():
                     continue
 
                 alpha_folder = f"alpha_{alpha}"
+                sorted_pair = "_".join(sorted(pair.split("_")))
 
                 out_dir = args.dst / model / method / pair / alpha_folder
                 out_dir.mkdir(parents=True, exist_ok=True)
@@ -123,7 +149,6 @@ def main():
                     inter_dir.mkdir(parents=True, exist_ok=True)
                     extra_paths.append(inter_dir / f.name)
 
-                    sorted_pair = "_".join(sorted(pair.split("_")))
                     unordered_dir = (
                         args.dst / model / method / "unordered_pairs" / sorted_pair / "intermediate_alphas"
                     )
@@ -134,6 +159,10 @@ def main():
                     extremes_dir = args.dst / model / method / "extremes" / instrument
                     extremes_dir.mkdir(parents=True, exist_ok=True)
                     extra_paths.append(extremes_dir / f"{pair}__{f.name}")
+
+                    extremes_pair_dir = args.dst / model / method / "extremes" / sorted_pair
+                    extremes_pair_dir.mkdir(parents=True, exist_ok=True)
+                    extra_paths.append(extremes_pair_dir / f"{pair}__{f.name}")
 
                 if args.move:
                     for p in extra_paths:
@@ -151,14 +180,23 @@ def main():
 
                 all_dir = args.dst / model / "resynthesis" / "all"
                 all_dir.mkdir(parents=True, exist_ok=True)
-                all_path = all_dir / f.name
+                extra_paths = [all_dir / f.name]
+
+                for sorted_pair in sorted(pairs_by_model.get(model, set())):
+                    if pair not in sorted_pair.split("_"):
+                        continue
+                    pair_dir = args.dst / model / "resynthesis" / sorted_pair
+                    pair_dir.mkdir(parents=True, exist_ok=True)
+                    extra_paths.append(pair_dir / f.name)
 
                 if args.move:
-                    shutil.copy2(f, all_path)
+                    for p in extra_paths:
+                        shutil.copy2(f, p)
                     shutil.move(str(f), str(out_path))
                 else:
                     shutil.copy2(f, out_path)
-                    shutil.copy2(f, all_path)
+                    for p in extra_paths:
+                        shutil.copy2(f, p)
 
             count += 1
 
