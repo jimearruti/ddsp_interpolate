@@ -1,0 +1,8 @@
+resynth_path,model,category,method,grouping,pair,instrument,alpha,distance
+./results_reordered/finetuned_from_30k_for_30k/output/all,finetuned_from_30k_for_30k,output,output,all,,,,7.0598181632917978087
+./results_reordered/finetuned_from_30k_for_30k/weights/all,finetuned_from_30k_for_30k,weights,weights,all,,,,7.1513927483887952154
+./results_reordered/finetuned_from_30k_for_30k/resynthesis/all,finetuned_from_30k_for_30k,resynthesis,,,,all,,6.81232638518484287
+./results_reordered/from_scratch/output/all,from_scratch,output,output,all,,,,5.005531841699875275
+./results_reordered/from_scratch/weights/all,from_scratch,weights,weights,all,,,,6.9810173371705883417
+./results_reordered/from_scratch/resynthesis/all,from_scratch,resynthesis,,,,all,,4.6871607954132826386
+../data/URMP/Dataset/rearranged/test,,,,,,,,1.6973636050753990769

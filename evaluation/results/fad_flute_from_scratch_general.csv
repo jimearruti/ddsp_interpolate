@@ -1,0 +1,11 @@
+resynth_path,model,category,method,grouping,pair,instrument,alpha,distance
+../data/URMP/Dataset/rearranged/test_vn,,,,,,,,25.385228027623401477
+../data/URMP/Dataset/rearranged/test_fl,,,,,,,,2.2344640073077518434
+../data/URMP/Dataset/rearranged/test_tpt,,,,,,,,13.1146231681392528325
+./results_reordered/from_scratch/resynthesis/fl,from_scratch,resynthesis,,,,fl,,4.089112746840596833
+./results_reordered/from_scratch/weights/extremes/fl,from_scratch,weights,weights,extremes,,fl,,3.5968586418098609757
+./results_reordered/from_scratch/weights/unordered_pairs/fl_tpt/intermediate_alphas,from_scratch,weights,weights,unordered_pairs,fl_tpt,,intermediate_alphas,14.631443442231577109
+./results_reordered/from_scratch/weights/unordered_pairs/fl_vn/intermediate_alphas,from_scratch,weights,weights,unordered_pairs,fl_vn,,intermediate_alphas,10.4394808532866835826
+./results_reordered/from_scratch/output/extremes/fl,from_scratch,output,output,extremes,,fl,,3.5927597726275388237
+./results_reordered/from_scratch/output/unordered_pairs/fl_tpt/intermediate_alphas,from_scratch,output,output,unordered_pairs,fl_tpt,,intermediate_alphas,7.455545451296322462
+./results_reordered/from_scratch/output/unordered_pairs/fl_vn/intermediate_alphas,from_scratch,output,output,unordered_pairs,fl_vn,,intermediate_alphas,10.634441780688319251

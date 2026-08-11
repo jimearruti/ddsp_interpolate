@@ -1,0 +1,7 @@
+resynth_path,model,category,method,grouping,pair,instrument,alpha,distance
+../data/URMP/Dataset/rearranged/test_tpt_vn,,,,,,,,2.343291379558924921
+./results_reordered/from_scratch/resynthesis/tpt_vn,from_scratch,resynthesis,,,,tpt_vn,,4.7758232503196909845
+./results_reordered/from_scratch/weights/extremes/tpt_vn,from_scratch,weights,weights,extremes,,tpt_vn,,4.7776345784006363383
+./results_reordered/from_scratch/weights/unordered_pairs/tpt_vn/intermediate_alphas,from_scratch,weights,weights,unordered_pairs,tpt_vn,,intermediate_alphas,13.121375589147468968
+./results_reordered/from_scratch/output/extremes/tpt_vn,from_scratch,output,output,extremes,,tpt_vn,,4.755427861687408638
+./results_reordered/from_scratch/output/unordered_pairs/tpt_vn/intermediate_alphas,from_scratch,output,output,unordered_pairs,tpt_vn,,intermediate_alphas,6.3572998079244941224
