@@ -1,8 +1,10 @@
 resynth_path,model,category,method,grouping,pair,instrument,alpha,distance
+../data/URMP/Dataset/rearranged/test_vn,,,,,,,,0.1652660369873047
 ../data/URMP/Dataset/rearranged/test_fl,,,,,,,,0.04036015272140503
 ../data/URMP/Dataset/rearranged/test_tpt,,,,,,,,0.2988555431365967
-../data/URMP/Dataset/rearranged/test_vn,,,,,,,,0.1652660369873047
+./results_reordered/finetuned_from_30k_for_30k/resynthesis/vn,finetuned_from_30k_for_30k,resynthesis,,,,vn,,0.23782342672348022
 ./results_reordered/finetuned_from_30k_for_30k/resynthesis/fl,finetuned_from_30k_for_30k,resynthesis,,,,fl,,0.12915033102035522
+./results_reordered/finetuned_from_30k_for_30k/resynthesis/tpt,finetuned_from_30k_for_30k,resynthesis,,,,tpt,,0.21652007102966309
 ./results_reordered/finetuned_from_30k_for_30k/output/fl_tpt/alpha_0,finetuned_from_30k_for_30k,output,output,,fl_tpt,,alpha_0,0.11702752113342285
 ./results_reordered/finetuned_from_30k_for_30k/output/fl_tpt/alpha_25,finetuned_from_30k_for_30k,output,output,,fl_tpt,,alpha_25,0.1188167929649353
 ./results_reordered/finetuned_from_30k_for_30k/output/fl_tpt/alpha_50,finetuned_from_30k_for_30k,output,output,,fl_tpt,,alpha_50,0.14310318231582642

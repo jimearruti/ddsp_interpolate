@@ -1,8 +1,10 @@
 resynth_path,model,category,method,grouping,pair,instrument,alpha,distance
+../data/URMP/Dataset/rearranged/test_vn,,,,,,,,0.01216435432434082
 ../data/URMP/Dataset/rearranged/test_fl,,,,,,,,0.23889219760894775
 ../data/URMP/Dataset/rearranged/test_tpt,,,,,,,,0.37122583389282227
-../data/URMP/Dataset/rearranged/test_vn,,,,,,,,0.01216435432434082
 ./results_reordered/from_scratch/resynthesis/vn,from_scratch,resynthesis,,,,vn,,0.09585916996002197
+./results_reordered/from_scratch/resynthesis/fl,from_scratch,resynthesis,,,,fl,,0.20262473821640015
+./results_reordered/from_scratch/resynthesis/tpt,from_scratch,resynthesis,,,,tpt,,0.28150975704193115
 ./results_reordered/from_scratch/output/vn_tpt/alpha_0,from_scratch,output,output,,vn_tpt,,alpha_0,0.09279656410217285
 ./results_reordered/from_scratch/output/vn_tpt/alpha_25,from_scratch,output,output,,vn_tpt,,alpha_25,0.1765075922012329
 ./results_reordered/from_scratch/output/vn_tpt/alpha_50,from_scratch,output,output,,vn_tpt,,alpha_50,0.2974352240562439
