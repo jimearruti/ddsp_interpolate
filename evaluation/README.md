@@ -50,6 +50,17 @@ Then run
 python -m evaluation.fad <config.json>
 ```
 
+### MMD
 
+To compute MMD you need to install the [nas-eval](https://github.com/jorshi/nas-eval) package by running:
+```
+pip install git+https://github.com/jorshi/nas-eval #installs nas_eval package
+```
+
+To calculate MMD you can use the same approach described for FAD, but run
+
+```
+python -m evaluation.mmd <config.json>
+```
 
 

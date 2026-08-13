@@ -1,13 +1,18 @@
-# Train block
+# Train
 
-## Weights and Biases for logging
+## Set up Weights and Biases for logging training metrics
 * Create an account on [Weights and Biases](https://wandb.ai/site/)
 * [Get your API KEY](https://docs.wandb.ai/support/models/articles/how-do-i-find-my-api-key)
 * Create a `.env` file in the root dir that says
 ```
 WANDB_API_KEY=<YOUR_API_KEY>
 ```
-This will be used automatically during training.
+This will be used to authenticate your user automatically during training.
+
+If everything is working correctly, you should be able to see the metrics logged from all future training runs in `Projects/<training_name>`:
+
+<img width="1917" height="901" alt="{877C05AE-CFC5-4E00-83CB-11AA1A58FD5D}" src="https://github.com/user-attachments/assets/094fc260-e23c-4e2d-922b-60272e392276" />
+
 
 ## Dataset split
 
@@ -23,7 +28,7 @@ After, while in the root directory, perform the data split using
 python -m train.split_dataset
 ```
 
-The split is done on a **piece** level, to ensure no leakage takes place. There's a check on a file level after the split is done to ensure the ratios are approximately met for **violin, flute and trumpet**.
+The split is done at a **piece** level, to ensure no leakage takes place. There's a check at the file level after the split is done to ensure the ratios are approximately met for **violin, flute and trumpet**.
 
 The split used for our experiments can be seen in `preprocessed/split_files.json`.
 
@@ -35,7 +40,7 @@ Edit `../config.yaml` file to fit your needs (instruments to consider, audio loc
 python -m train.preprocess
 ```
 
-This will process each instrument separately.
+This will process each instrument separately, and store the results by default in `preprocessed`.
 
 
 ### Train a model from scratch
@@ -56,7 +61,7 @@ To obtain a base model, you need to run
 python -m train.train_base_model --name mytraining_base_model
 ```
 
-This will create a base model using data from all instruments defined in `config.yaml`. Audio quality is not expected to be good, since it mixes recordings of all the instruments and will serve as a starting point for finetuning. 
+This will create a base model using data from all instruments defined in `config.yaml`. Audio quality is not expected to resemble any of the instruments in particular, since it mixes recordings of all the instruments and will serve as a starting point for finetuning. 
 
 The trained base models are saved in `runs/<training_name>/<timestamp_with_date_and_time_info>/base_model/state_<checkpoint_number>.pth`
 
