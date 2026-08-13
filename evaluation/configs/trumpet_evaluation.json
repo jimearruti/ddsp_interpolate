@@ -1,9 +1,14 @@
 {
     "background_path": "../data/URMP/Dataset/rearranged/train_tpt",
     "resynth_paths": [
+        "../data/URMP/Dataset/rearranged/test_vn",
+        "../data/URMP/Dataset/rearranged/test_fl",
         "../data/URMP/Dataset/rearranged/test_tpt",
 
+        "./results_reordered/finetuned_from_30k_for_30k/resynthesis/vn",
+        "./results_reordered/finetuned_from_30k_for_30k/resynthesis/fl",
         "./results_reordered/finetuned_from_30k_for_30k/resynthesis/tpt",
+
 
         "./results_reordered/finetuned_from_30k_for_30k/output/tpt_vn/alpha_0",
         "./results_reordered/finetuned_from_30k_for_30k/output/tpt_vn/alpha_25",
