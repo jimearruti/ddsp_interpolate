@@ -1,0 +1,7 @@
+{
+    "background_path": "./results_reordered/finetuned_from_30k_for_30k/weights/extremes/tpt_vn",
+    "resynth_paths": [
+        "./results_reordered/finetuned_from_30k_for_30k/resynthesis/tpt_vn",
+        "./results_reordered/finetuned_from_30k_for_30k/weights/unordered_pairs/tpt_vn/intermediate_alphas"
+    ]
+}
