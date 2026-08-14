@@ -1,0 +1,57 @@
+{
+    "background_path": "../data/URMP/Dataset/rearranged/train_fl",
+    "resynth_paths": [
+        "../data/URMP/Dataset/rearranged/test_fl",
+
+        "./results_reordered/from_scratch/fl",
+
+        "./results_reordered/from_scratch/output/fl_tpt/alpha_0/with_reverb",
+        "./results_reordered/from_scratch/output/fl_tpt/alpha_25/with_reverb",
+        "./results_reordered/from_scratch/output/fl_tpt/alpha_50/with_reverb",
+        "./results_reordered/from_scratch/output/fl_tpt/alpha_75/with_reverb",
+        "./results_reordered/from_scratch/output/fl_tpt/alpha_100/with_reverb",
+
+        "./results_reordered/from_scratch/output/tpt_fl/alpha_0/with_reverb",
+        "./results_reordered/from_scratch/output/tpt_fl/alpha_25/with_reverb",
+        "./results_reordered/from_scratch/output/tpt_fl/alpha_50/with_reverb",
+        "./results_reordered/from_scratch/output/tpt_fl/alpha_75/with_reverb",
+        "./results_reordered/from_scratch/output/tpt_fl/alpha_100/with_reverb",
+
+        "./results_reordered/from_scratch/output/fl_vn/alpha_0/with_reverb",
+        "./results_reordered/from_scratch/output/fl_vn/alpha_25/with_reverb",
+        "./results_reordered/from_scratch/output/fl_vn/alpha_50/with_reverb",
+        "./results_reordered/from_scratch/output/fl_vn/alpha_75/with_reverb",
+        "./results_reordered/from_scratch/output/fl_vn/alpha_100/with_reverb",
+
+        "./results_reordered/from_scratch/output/vn_fl/alpha_0/with_reverb",
+        "./results_reordered/from_scratch/output/vn_fl/alpha_25/with_reverb",
+        "./results_reordered/from_scratch/output/vn_fl/alpha_50/with_reverb",
+        "./results_reordered/from_scratch/output/vn_fl/alpha_75/with_reverb",
+        "./results_reordered/from_scratch/output/vn_fl/alpha_100/with_reverb",
+
+        "./results_reordered/from_scratch/weights/fl_tpt/alpha_0/with_reverb",
+        "./results_reordered/from_scratch/weights/fl_tpt/alpha_25/with_reverb",
+        "./results_reordered/from_scratch/weights/fl_tpt/alpha_50/with_reverb",
+        "./results_reordered/from_scratch/weights/fl_tpt/alpha_75/with_reverb",
+        "./results_reordered/from_scratch/weights/fl_tpt/alpha_100/with_reverb",
+
+        "./results_reordered/from_scratch/weights/tpt_fl/alpha_0/with_reverb",
+        "./results_reordered/from_scratch/weights/tpt_fl/alpha_25/with_reverb",
+        "./results_reordered/from_scratch/weights/tpt_fl/alpha_50/with_reverb",
+        "./results_reordered/from_scratch/weights/tpt_fl/alpha_75/with_reverb",
+        "./results_reordered/from_scratch/weights/tpt_fl/alpha_100/with_reverb",
+
+        "./results_reordered/from_scratch/weights/fl_vn/alpha_0/with_reverb",
+        "./results_reordered/from_scratch/weights/fl_vn/alpha_25/with_reverb",
+        "./results_reordered/from_scratch/weights/fl_vn/alpha_50/with_reverb",
+        "./results_reordered/from_scratch/weights/fl_vn/alpha_75/with_reverb",
+        "./results_reordered/from_scratch/weights/fl_vn/alpha_100/with_reverb",
+
+        "./results_reordered/from_scratch/weights/vn_fl/alpha_0/with_reverb",
+        "./results_reordered/from_scratch/weights/vn_fl/alpha_25/with_reverb",
+        "./results_reordered/from_scratch/weights/vn_fl/alpha_50/with_reverb",
+        "./results_reordered/from_scratch/weights/vn_fl/alpha_75/with_reverb",
+        "./results_reordered/from_scratch/weights/vn_fl/alpha_100/with_reverb"
+    ],
+    "csv_path": "distances_from_scratch.csv"
+}

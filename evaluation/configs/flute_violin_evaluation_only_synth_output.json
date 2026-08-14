@@ -1,7 +1,9 @@
 {
-    "background_path": "./results_reordered/from_scratch/weights/extremes/fl_tpt",
+    "background_path": "./results_reordered/from_scratch/weights/extremes/fl_vn",
     "resynth_paths": [
-        "./results_reordered/from_scratch/resynthesis/fl_tpt",
-        "./results_reordered/from_scratch/weights/unordered_pairs/fl_tpt/intermediate_alphas"
-    ]
+        "./results_reordered/from_scratch/resynthesis/fl_vn",
+        "./results_reordered/from_scratch/weights/unordered_pairs/fl_vn/intermediate_alphas"
+    ],
+    "csv_path": "fad_flute_violin_from_scratch_only_synth.csv"
+
 }
