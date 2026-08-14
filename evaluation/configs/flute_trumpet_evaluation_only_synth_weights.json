@@ -4,6 +4,6 @@
         "./results_reordered/finetuned_from_30k_for_30k/resynthesis/fl_tpt",
         "./results_reordered/finetuned_from_30k_for_30k/weights/unordered_pairs/fl_tpt/intermediate_alphas"
     ],
-    "csv_path": "fad_flute_trumpet_finetuned_only_synth.csv"
+    "csv_path": "evaluation/results/fad_flute_trumpet_finetuned_only_synth.csv"
 
 }

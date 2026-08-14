@@ -4,6 +4,6 @@
         "./results_reordered/from_scratch/resynthesis/tpt_vn",
         "./results_reordered/from_scratch/weights/unordered_pairs/tpt_vn/intermediate_alphas"
     ],
-    "csv_path": "fad_trumpet_violin_from_scratch_only_synth.csv"
+    "csv_path": "evaluation/results/fad_trumpet_violin_from_scratch_only_synth.csv"
 
 }

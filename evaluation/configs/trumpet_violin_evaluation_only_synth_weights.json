@@ -4,6 +4,6 @@
         "./results_reordered/finetuned_from_30k_for_30k/resynthesis/tpt_vn",
         "./results_reordered/finetuned_from_30k_for_30k/weights/unordered_pairs/tpt_vn/intermediate_alphas"
     ],
-    "csv_path": "fad_trumpet_violin_finetuned_only_synth.csv"
+    "csv_path": "evaluation/results/fad_trumpet_violin_finetuned_only_synth.csv"
 
 }

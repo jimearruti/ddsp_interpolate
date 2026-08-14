@@ -4,5 +4,5 @@
         "./results_reordered/from_scratch/resynthesis/fl_tpt",
         "./results_reordered/from_scratch/output/unordered_pairs/fl_tpt/intermediate_alphas"
     ],
-    "csv_path": "fad_flute_trumpet_from_scratch_only_synth.csv"
+    "csv_path": "evaluation/results/fad_flute_trumpet_from_scratch_only_synth.csv"
 }

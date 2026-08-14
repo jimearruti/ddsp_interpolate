@@ -4,6 +4,6 @@
         "./results_reordered/from_scratch/resynthesis/fl_vn",
         "./results_reordered/from_scratch/weights/unordered_pairs/fl_vn/intermediate_alphas"
     ],
-    "csv_path": "fad_flute_violin_from_scratch_only_synth.csv"
+    "csv_path": "evaluation/results/fad_flute_violin_from_scratch_only_synth.csv"
 
 }
