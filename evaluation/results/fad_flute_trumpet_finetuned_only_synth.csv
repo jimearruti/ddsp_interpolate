@@ -1,0 +1,3 @@
+resynth_path,model,category,method,grouping,pair,instrument,alpha,distance
+./results_reordered/finetuned_from_30k_for_30k/resynthesis/fl_tpt,finetuned_from_30k_for_30k,resynthesis,,,,fl_tpt,,0.5484743276985817
+./results_reordered/finetuned_from_30k_for_30k/weights/unordered_pairs/fl_tpt/intermediate_alphas,finetuned_from_30k_for_30k,weights,weights,unordered_pairs,fl_tpt,,intermediate_alphas,0.38305612814630763

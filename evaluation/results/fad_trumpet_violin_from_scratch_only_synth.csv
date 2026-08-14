@@ -1,0 +1,3 @@
+resynth_path,model,category,method,grouping,pair,instrument,alpha,distance
+./results_reordered/from_scratch/resynthesis/tpt_vn,from_scratch,resynthesis,,,,tpt_vn,,0.0567226294374521
+./results_reordered/from_scratch/weights/unordered_pairs/tpt_vn/intermediate_alphas,from_scratch,weights,weights,unordered_pairs,tpt_vn,,intermediate_alphas,5.027151124538452
