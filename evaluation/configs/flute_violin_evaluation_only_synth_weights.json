@@ -1,8 +1,8 @@
 {
-    "background_path": "./results_reordered/finetuned_from_30k_for_30k/weights/extremes/fl_vn",
+    "background_path": "./results_reordered/finetuned_from_30k_for_30k/output/extremes/fl_vn",
     "resynth_paths": [
         "./results_reordered/finetuned_from_30k_for_30k/resynthesis/fl_vn",
-        "./results_reordered/finetuned_from_30k_for_30k/weights/unordered_pairs/fl_vn/intermediate_alphas"
+        "./results_reordered/finetuned_from_30k_for_30k/output/unordered_pairs/fl_vn/intermediate_alphas"
     ],
     "csv_path": "evaluation/results/fad_flute_violin_finetuned_only_synth.csv"
 

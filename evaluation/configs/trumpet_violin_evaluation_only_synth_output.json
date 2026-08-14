@@ -1,8 +1,8 @@
 {
-    "background_path": "./results_reordered/from_scratch/weights/extremes/tpt_vn",
+    "background_path": "./results_reordered/from_scratch/output/extremes/tpt_vn",
     "resynth_paths": [
         "./results_reordered/from_scratch/resynthesis/tpt_vn",
-        "./results_reordered/from_scratch/weights/unordered_pairs/tpt_vn/intermediate_alphas"
+        "./results_reordered/from_scratch/output/unordered_pairs/tpt_vn/intermediate_alphas"
     ],
     "csv_path": "evaluation/results/fad_trumpet_violin_from_scratch_only_synth.csv"
 
