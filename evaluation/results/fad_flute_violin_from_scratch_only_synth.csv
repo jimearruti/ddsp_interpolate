@@ -1,3 +1,3 @@
 resynth_path,model,category,method,grouping,pair,instrument,alpha,distance
-./results_reordered/from_scratch/resynthesis/fl_vn,from_scratch,resynthesis,,,,fl_vn,,0.11188429836066405
-./results_reordered/from_scratch/weights/unordered_pairs/fl_vn/intermediate_alphas,from_scratch,weights,weights,unordered_pairs,fl_vn,,intermediate_alphas,4.950048630143694
+./results_reordered/from_scratch/resynthesis/fl_vn,from_scratch,resynthesis,,,,fl_vn,,0.11083689702829247
+./results_reordered/from_scratch/output/unordered_pairs/fl_vn/intermediate_alphas,from_scratch,output,output,unordered_pairs,fl_vn,,intermediate_alphas,1.583809794555389

@@ -1,3 +1,3 @@
 resynth_path,model,category,method,grouping,pair,instrument,alpha,distance
-./results_reordered/finetuned_from_30k_for_30k/resynthesis/fl_vn,finetuned_from_30k_for_30k,resynthesis,,,,fl_vn,,0.1263079419705626
-./results_reordered/finetuned_from_30k_for_30k/output/unordered_pairs/fl_vn/intermediate_alphas,finetuned_from_30k_for_30k,output,output,unordered_pairs,fl_vn,,intermediate_alphas,0.9233076964234712
+./results_reordered/finetuned_from_30k_for_30k/resynthesis/fl_vn,finetuned_from_30k_for_30k,resynthesis,,,,fl_vn,,0.13376013044634405
+./results_reordered/finetuned_from_30k_for_30k/weights/unordered_pairs/fl_vn/intermediate_alphas,finetuned_from_30k_for_30k,weights,weights,unordered_pairs,fl_vn,,intermediate_alphas,0.6599017894997417
