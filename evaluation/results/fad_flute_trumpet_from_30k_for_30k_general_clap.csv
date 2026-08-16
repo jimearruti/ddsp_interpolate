@@ -1,0 +1,7 @@
+resynth_path,model,category,method,grouping,pair,instrument,alpha,distance
+../data/URMP/Dataset/rearranged/test_fl_tpt,,,,,,,,0.08437681968938715
+./results_reordered/finetuned_from_30k_for_30k/resynthesis/fl_tpt,finetuned_from_30k_for_30k,resynthesis,,,,fl_tpt,,0.27511094623616483
+./results_reordered/finetuned_from_30k_for_30k/weights/extremes/fl_tpt,finetuned_from_30k_for_30k,weights,weights,extremes,,fl_tpt,,0.24993640263567135
+./results_reordered/finetuned_from_30k_for_30k/weights/unordered_pairs/fl_tpt/intermediate_alphas,finetuned_from_30k_for_30k,weights,weights,unordered_pairs,fl_tpt,,intermediate_alphas,0.2692546586434069
+./results_reordered/finetuned_from_30k_for_30k/output/extremes/fl_tpt,finetuned_from_30k_for_30k,output,output,extremes,,fl_tpt,,0.254620042320863
+./results_reordered/finetuned_from_30k_for_30k/output/unordered_pairs/fl_tpt/intermediate_alphas,finetuned_from_30k_for_30k,output,output,unordered_pairs,fl_tpt,,intermediate_alphas,0.2904417520124132
