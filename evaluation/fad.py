@@ -1,10 +1,10 @@
 # Adapted from https://github.com/fcaspe/BRAVE/blob/main/evaluation/scripts/fad.py
 
+import argparse
 import csv
 import json
 import logging
 import os
-import sys
 
 from frechet_audio_distance import FrechetAudioDistance
 
@@ -16,16 +16,13 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
 
 
 def main():
-    if len(sys.argv) != 3 and len(sys.argv) != 2:
-        logging.error("Usage: python -m evaluate.fad <config.json> | <modname>")
-        exit(1)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("config_path")
+    parser.add_argument("-m", "--model", dest="modname", choices=["vggish", "clap"], default="vggish")
+    args = parser.parse_args()
 
-    config_path = sys.argv[1]; del sys.argv[1]
-
-    if len(sys.argv) == 3:
-        modname = sys.argv[2]; del sys.argv[2]
-    else:
-        modname = "vggish"
+    config_path = args.config_path
+    modname = args.modname
 
     # Load config file
     try:
@@ -44,11 +41,7 @@ def main():
 
     csv_path = config.get("csv_path", "fad_results.csv")
 
-    if modname not in ["vggish", "clap"]:
-        logging.error("Invalid model_name. Must be 'vggish' or 'clap'.")
-        exit(1)
-
-    elif modname == "vggish":
+    if modname == "vggish":
         frechet = FrechetAudioDistance(
             model_name=modname,
             sample_rate=16000,  # VGGish resamples files to 16kHz
