@@ -16,11 +16,17 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
 
 
 def main():
-    if len(sys.argv) != 2:
-        logging.error("Usage: python script.py <config.json>")
+    if len(sys.argv) != 3 and len(sys.argv) != 2:
+        logging.error("Usage: python -m evaluate.fad <config.json> | <modname>")
         exit(1)
 
     config_path = sys.argv[1]; del sys.argv[1]
+
+    if len(sys.argv) == 3:
+        modname = sys.argv[2]; del sys.argv[2]
+    else:
+        modname = "vggish"
+
     # Load config file
     try:
         with open(config_path, "r") as config_file:
@@ -31,21 +37,34 @@ def main():
 
     background_path = config.get("background_path")
     resynth_paths = config.get("resynth_paths", [])
+
     if not background_path or not resynth_paths:
         logging.error("Configuration file must specify a 'background_path' and a list of 'resynth_paths'.")
         exit(1)
 
     csv_path = config.get("csv_path", "fad_results.csv")
 
-    modname = "vggish"
+    if modname not in ["vggish", "clap"]:
+        logging.error("Invalid model_name. Must be 'vggish' or 'clap'.")
+        exit(1)
 
-    frechet = FrechetAudioDistance(
-        model_name=modname,
-        sample_rate=16000,  # VGGish resamples files to 16kHz
-        use_pca=False,
-        use_activation=False,
+    elif modname == "vggish":
+        frechet = FrechetAudioDistance(
+            model_name=modname,
+            sample_rate=16000,  # VGGish resamples files to 16kHz
+            use_pca=False,
+            use_activation=False,
+            verbose=False,
+        )
+    
+    else:
+        frechet = FrechetAudioDistance(
+        model_name="clap",
+        sample_rate=48000,
+        submodel_name="630k-audioset",  # for CLAP only
         verbose=False,
-    )
+        enable_fusion=False,            # for CLAP only
+        )   
 
     with open(csv_path, "w", newline="") as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames=CSV_FIELDS)
