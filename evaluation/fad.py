@@ -71,8 +71,8 @@ def main():
             distance = frechet.score(
                 background_path,
                 resynth_path,
-                background_embds_path=background_path + f"/bkg_embeddings_{modname}.npy",
-                eval_embds_path=resynth_path + f"/resynth_embeddings_{modname}.npy",
+                background_embds_path=background_path + f"/.fad_cache/bkg_embeddings_{modname}.npy",
+                eval_embds_path=resynth_path + f"/.fad_cache/resynth_embeddings_{modname}.npy",
                 dtype="float32",
             )
             logging.info(f"Distance for {resynth_path}: {distance:.2f}")
