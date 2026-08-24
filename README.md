@@ -10,6 +10,8 @@ For detailed instructions on each block, see their README files:
 
 Remember that everything is run from the root folder!
 
+> Note that the **interpolation of parameters** is called **interpolation of outputs** in this code.
+
 ## Setup
 
 Create and activate a virtual environment, then install the dependencies:
