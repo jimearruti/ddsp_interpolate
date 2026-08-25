@@ -33,7 +33,7 @@ pip install -r requirements.txt
 ## Acknowledgments
 This code started as a fork of the implementation of the [DDSP model](https://github.com/magenta/ddsp) in PyTorch [made by ACIDS-IRCAM](https://github.com/acids-ircam/ddsp_pytorch). 
 
-The dataset used for experiments was the [UMRP Dataset](https://labsites.rochester.edu/air/projects/URMP.html), which consists of several subfolders with different instruments.
+The [UMRP Dataset](https://labsites.rochester.edu/air/projects/URMP.html) was used for the experiments.
 
 Evaluation is based on code from [BRAVE](https://github.com/fcaspe/BRAVE)
 
